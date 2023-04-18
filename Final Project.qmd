@@ -4,6 +4,29 @@ format: pdf
 editor: visual
 author: "Benji Gold and Sam Alkalay"
 ---
+## Introduction
+
+  Baseball, America’s pastime, has a long and storied tradition that dates back well over 100 years. Since the 1850’s, some form of statistics measuring how good a player is has been tracked.  This began through the use of the box score, which tracked basic statistics, such as hits, runs, and errors, from which a player’s batting average can be constructed.  Over one hundred years later, a pioneering statistician by the name of Bill James introduced new statistical concepts, such as on-base percentage and runs created, in his annual Baseball Abstract (Lee 2018).  As technology has improved, the statistics being tracked became more and more sophisticated.
+  Then, in 2015 analytics in baseball took a giant leap.  With the introduction of Statcast, teams were able to track novel metrics, such as a batter’s exit velocity (the speed of the baseball as it comes off the bat, immediately after a batter makes contact) and barrel percentage (the percentage of baseballs hit off of the player’s barrel) (“Statcast Search”).  Around the league, teams adopted these new statistics to try and gain a competitive advantage, through which they would be able to better predict a player’s potential.
+  However, is this actually the case?  While these new statistics are widely used, it is unclear whether they actually provide any useful information for predicting a player’s potential.  This research project intends to explore that idea through the use of a logistic regression model to predict whether a player is an all-star.  The research question of interest is:
+  
+Do old or new wave statistics do a better job at predicting whether a player is selected as an all-star?
+
+The response variables of interest are:
+All.Star: Whether a player is selected as an all-star.
+Salary: How much money a player makes.
+
+  For our analysis, we have selected two datasets. The first is from Baseball Reference, which consists of standard statistics that offer a broad view of a player's performance in a particular season.  The second is from Statcast, which consists of each player’s primary position.  ADD MORE ABOUT WHAT WE DID WITH THE DATA HERE
+
+
+## Methodology
+
+
+## Results
+
+
+## Discussion
+
 
 ## Packages and Data
 
@@ -27,9 +50,8 @@ view(stats)
 # LASSO Variable Selection Basic Stats
 y <- stats$All.Star
 x <- model.matrix(All.Star ~ player_age + b_ab + b_total_pa + b_total_hits + 
-                    b_double + b_triple + b_home_run + b_strikeout + b_walk +
-                    b_k_percent + b_bb_percent + batting_avg + slg_percent +
-                    on_base_percent, data = stats)
+                    b_double + b_triple + b_home_run + b_strikeout + b_walk + 
+                    batting_avg + slg_percent + on_base_percent + Position, data = stats)
 m_lasso_cv <- cv.glmnet(x, y, alpha = 1)
 best_lambda <- m_lasso_cv$lambda.min
 best_lambda
@@ -57,7 +79,7 @@ m_best$beta
 m1 <- glm(All.Star ~ player_age + b_ab +  b_total_hits + 
                     b_double + b_triple + b_home_run + b_strikeout +
                     b_bb_percent + batting_avg + slg_percent +
-                    on_base_percent,
+                    on_base_percent + Position,
   data = stats,
   family = "binomial"
 )
@@ -83,4 +105,5 @@ m2_aug <- augment(m2) %>%
 table(m2_aug$pred_leg, m2_aug$All.Star)
 
 ```
+
 

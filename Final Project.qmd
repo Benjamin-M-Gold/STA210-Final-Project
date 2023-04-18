@@ -1,0 +1,19 @@
+---
+title: "Final Project"
+format: html
+editor: visual
+author: "Benji Gold and Sam Alkalay"
+---
+
+## Packages and Data
+```{r libs, warning=FALSE, message=FALSE}
+library(tidyverse)
+stats <- read.csv("data/stats.csv")
+
+
+stats <- replace(stats, stats =="", NA)
+stats <- stats %>%
+  drop_na()
+view(stats)
+```
+

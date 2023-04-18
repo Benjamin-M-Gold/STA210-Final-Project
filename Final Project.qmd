@@ -7,7 +7,7 @@ author: "Benji Gold and Sam Alkalay"
 
 ## Packages and Data
 
-```{r libs, warning=FALSE, message=FALSE}
+```{r libs, c}
 library(tidyverse)
 library(tidymodels) 
 library(glmnet)
@@ -22,7 +22,8 @@ stats <- stats %>%
 view(stats)
 ```
 
-```{r}
+## Lassos for Variable Selection
+```{r lasso,warning=FALSE, message=FALSE}
 # LASSO Variable Selection Basic Stats
 y <- stats$All.Star
 x <- model.matrix(All.Star ~ player_age + b_ab + b_total_pa + b_total_hits + 
@@ -36,7 +37,7 @@ m_best <- glmnet(x, y, alpha = 1, lambda = best_lambda)
 m_best$beta
 ```
 
-```{r}
+```{r lasso2,warning=FALSE, message=FALSE}
 # LASSO Variable Selection Advanced Stats
 y <- stats$All.Star
 x <- model.matrix(All.Star ~ player_age + launch_angle_avg + sweet_spot_percent + 
@@ -49,3 +50,28 @@ best_lambda
 m_best <- glmnet(x, y, alpha = 1, lambda = best_lambda)
 m_best$beta
 ```
+
+## Regressions
+```{r}
+#Basic model 
+logit_mod <- glm(All.Star ~ player_age + b_ab +  b_total_hits + 
+                    b_double + b_triple + b_home_run + b_strikeout +
+                    b_bb_percent + batting_avg + slg_percent +
+                    on_base_percent,
+  data = stats,
+  family = "binomial"
+)
+tidy(logit_mod)
+```
+
+```{r}
+#Basic model 
+logit_mod <- glm(All.Star ~ player_age + launch_angle_avg + 
+                    barrel + solidcontact_percent + flareburner_percent + 
+                    hard_hit_percent + meatball_swing_percent,
+  data = stats,
+  family = "binomial"
+)
+tidy(logit_mod)
+```
+

@@ -1,13 +1,13 @@
 ---
 title: "Final Project"
-format: html
+format: pdf
 editor: visual
 author: "Benji Gold and Sam Alkalay"
 ---
 
 ## Packages and Data
 
-```{r libs, c}
+```{r libs, message=FALSE, warning=FALSE}
 library(tidyverse)
 library(tidymodels) 
 library(glmnet)
@@ -54,24 +54,33 @@ m_best$beta
 ## Regressions
 ```{r}
 #Basic model 
-logit_mod <- glm(All.Star ~ player_age + b_ab +  b_total_hits + 
+m1 <- glm(All.Star ~ player_age + b_ab +  b_total_hits + 
                     b_double + b_triple + b_home_run + b_strikeout +
                     b_bb_percent + batting_avg + slg_percent +
                     on_base_percent,
   data = stats,
   family = "binomial"
 )
-tidy(logit_mod)
+tidy(m1)
+m1_aug <- augment(m1) %>% 
+  mutate(prob = exp(.fitted)/(1 + exp(.fitted)),
+         pred_leg = ifelse(prob > 0.5, "All-Star", "Not All-Star"))
+table(m1_aug$pred_leg, m1_aug$All.Star)
 ```
 
 ```{r}
-#Basic model 
-logit_mod <- glm(All.Star ~ player_age + launch_angle_avg + 
+#Advanced model 
+m2 <- glm(All.Star ~ player_age + launch_angle_avg + 
                     barrel + solidcontact_percent + flareburner_percent + 
                     hard_hit_percent + meatball_swing_percent,
   data = stats,
   family = "binomial"
 )
-tidy(logit_mod)
+tidy(m2)
+m2_aug <- augment(m2) %>% 
+  mutate(prob = exp(.fitted)/(1 + exp(.fitted)),
+         pred_leg = ifelse(prob > 0.5, "All-Star", "Not All-Star"))
+table(m2_aug$pred_leg, m2_aug$All.Star)
+
 ```
 

@@ -160,7 +160,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 ✖ dplyr::lag()      masks stats::lag()
 ✖ yardstick::spec() masks readr::spec()
 ✖ recipes::step()   masks stats::step()
-• Dig deeper into tidy modeling with R at https://www.tmwr.org</code></pre>
+• Search for functions across packages at https://www.tidymodels.org/find/</code></pre>
 </div>
 <div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(glmnet)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stderr">
@@ -219,7 +219,7 @@ The following object is masked from 'package:dplyr':
 <span id="cb12-8"><a href="#cb12-8" aria-hidden="true" tabindex="-1"></a>best_lambda <span class="ot">&lt;-</span> m_lasso_cv<span class="sc">$</span>lambda.min</span>
 <span id="cb12-9"><a href="#cb12-9" aria-hidden="true" tabindex="-1"></a>best_lambda</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>[1] 0.0006553567</code></pre>
+<pre><code>[1] 0.0002836883</code></pre>
 </div>
 <div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>m_best <span class="ot">&lt;-</span> <span class="fu">glmnet</span>(x, y, <span class="at">alpha =</span> <span class="dv">1</span>, <span class="at">lambda =</span> best_lambda)</span>
 <span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>m_best<span class="sc">$</span>beta</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
@@ -227,20 +227,20 @@ The following object is masked from 'package:dplyr':
 <pre><code>15 x 1 sparse Matrix of class "dgCMatrix"
                            s0
 (Intercept)      .           
-player_age      -0.0027758805
-b_ab            -0.0023121585
+player_age      -0.0027705747
+b_ab            -0.0025736875
 b_total_pa       .           
-b_total_hits     0.0065563054
-b_double         0.0013994999
-b_triple         0.0056687686
-b_home_run       0.0129839622
-b_strikeout     -0.0009615932
-b_walk           0.0042502489
-b_k_percent      0.0016630439
-b_bb_percent    -0.0048053256
-batting_avg      0.3193715237
-slg_percent     -0.0299502304
-on_base_percent -0.5471964876</code></pre>
+b_total_hits     0.0072586504
+b_double         0.0015246843
+b_triple         0.0057284255
+b_home_run       0.0130630036
+b_strikeout     -0.0007271321
+b_walk           0.0043723558
+b_k_percent      0.0012670293
+b_bb_percent    -0.0032218908
+batting_avg      0.5184438561
+slg_percent     -0.0713605840
+on_base_percent -0.7646596146</code></pre>
 </div>
 </div>
 <div class="cell">
@@ -280,14 +280,14 @@ meatball_swing_percent -0.0022336733</code></pre>
 <h2 class="anchored" data-anchor-id="regressions">Regressions</h2>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb20"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a><span class="co">#Basic model </span></span>
-<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a>logit_mod <span class="ot">&lt;-</span> <span class="fu">glm</span>(All.Star <span class="sc">~</span> player_age <span class="sc">+</span> b_ab <span class="sc">+</span>  b_total_hits <span class="sc">+</span> </span>
+<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a>m1 <span class="ot">&lt;-</span> <span class="fu">glm</span>(All.Star <span class="sc">~</span> player_age <span class="sc">+</span> b_ab <span class="sc">+</span>  b_total_hits <span class="sc">+</span> </span>
 <span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a>                    b_double <span class="sc">+</span> b_triple <span class="sc">+</span> b_home_run <span class="sc">+</span> b_strikeout <span class="sc">+</span></span>
 <span id="cb20-4"><a href="#cb20-4" aria-hidden="true" tabindex="-1"></a>                    b_bb_percent <span class="sc">+</span> batting_avg <span class="sc">+</span> slg_percent <span class="sc">+</span></span>
 <span id="cb20-5"><a href="#cb20-5" aria-hidden="true" tabindex="-1"></a>                    on_base_percent,</span>
 <span id="cb20-6"><a href="#cb20-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">data =</span> stats,</span>
 <span id="cb20-7"><a href="#cb20-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">family =</span> <span class="st">"binomial"</span></span>
 <span id="cb20-8"><a href="#cb20-8" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb20-9"><a href="#cb20-9" aria-hidden="true" tabindex="-1"></a><span class="fu">tidy</span>(logit_mod)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb20-9"><a href="#cb20-9" aria-hidden="true" tabindex="-1"></a><span class="fu">tidy</span>(m1)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code># A tibble: 12 × 5
    term              estimate std.error statistic  p.value
@@ -305,16 +305,26 @@ meatball_swing_percent -0.0022336733</code></pre>
 11 slg_percent       2.32       5.14       0.453  0.651   
 12 on_base_percent -39.9       19.1       -2.10   0.0361  </code></pre>
 </div>
+<div class="sourceCode cell-code" id="cb22"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a>m1_aug <span class="ot">&lt;-</span> <span class="fu">augment</span>(m1) <span class="sc">%&gt;%</span> </span>
+<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">prob =</span> <span class="fu">exp</span>(.fitted)<span class="sc">/</span>(<span class="dv">1</span> <span class="sc">+</span> <span class="fu">exp</span>(.fitted)),</span>
+<span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a>         <span class="at">pred_leg =</span> <span class="fu">ifelse</span>(prob <span class="sc">&gt;</span> <span class="fl">0.5</span>, <span class="st">"All-Star"</span>, <span class="st">"Not All-Star"</span>))</span>
+<span id="cb22-4"><a href="#cb22-4" aria-hidden="true" tabindex="-1"></a><span class="fu">table</span>(m1_aug<span class="sc">$</span>pred_leg, m1_aug<span class="sc">$</span>All.Star)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>              
+                 0   1
+  All-Star       9  18
+  Not All-Star 423  36</code></pre>
+</div>
 </div>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb22"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="co">#Basic model </span></span>
-<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a>logit_mod <span class="ot">&lt;-</span> <span class="fu">glm</span>(All.Star <span class="sc">~</span> player_age <span class="sc">+</span> launch_angle_avg <span class="sc">+</span> </span>
-<span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a>                    barrel <span class="sc">+</span> solidcontact_percent <span class="sc">+</span> flareburner_percent <span class="sc">+</span> </span>
-<span id="cb22-4"><a href="#cb22-4" aria-hidden="true" tabindex="-1"></a>                    hard_hit_percent <span class="sc">+</span> meatball_swing_percent,</span>
-<span id="cb22-5"><a href="#cb22-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">data =</span> stats,</span>
-<span id="cb22-6"><a href="#cb22-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">family =</span> <span class="st">"binomial"</span></span>
-<span id="cb22-7"><a href="#cb22-7" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb22-8"><a href="#cb22-8" aria-hidden="true" tabindex="-1"></a><span class="fu">tidy</span>(logit_mod)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb24"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a><span class="co">#Advanced model </span></span>
+<span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a>m2 <span class="ot">&lt;-</span> <span class="fu">glm</span>(All.Star <span class="sc">~</span> player_age <span class="sc">+</span> launch_angle_avg <span class="sc">+</span> </span>
+<span id="cb24-3"><a href="#cb24-3" aria-hidden="true" tabindex="-1"></a>                    barrel <span class="sc">+</span> solidcontact_percent <span class="sc">+</span> flareburner_percent <span class="sc">+</span> </span>
+<span id="cb24-4"><a href="#cb24-4" aria-hidden="true" tabindex="-1"></a>                    hard_hit_percent <span class="sc">+</span> meatball_swing_percent,</span>
+<span id="cb24-5"><a href="#cb24-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">data =</span> stats,</span>
+<span id="cb24-6"><a href="#cb24-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">family =</span> <span class="st">"binomial"</span></span>
+<span id="cb24-7"><a href="#cb24-7" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb24-8"><a href="#cb24-8" aria-hidden="true" tabindex="-1"></a><span class="fu">tidy</span>(m2)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code># A tibble: 8 × 5
   term                   estimate std.error statistic  p.value
@@ -327,6 +337,16 @@ meatball_swing_percent -0.0022336733</code></pre>
 6 flareburner_percent    -0.0129     0.0379    -0.341 7.33e- 1
 7 hard_hit_percent       -0.0256     0.0263    -0.974 3.30e- 1
 8 meatball_swing_percent -0.0358     0.0162    -2.21  2.72e- 2</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb26"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a>m2_aug <span class="ot">&lt;-</span> <span class="fu">augment</span>(m2) <span class="sc">%&gt;%</span> </span>
+<span id="cb26-2"><a href="#cb26-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">prob =</span> <span class="fu">exp</span>(.fitted)<span class="sc">/</span>(<span class="dv">1</span> <span class="sc">+</span> <span class="fu">exp</span>(.fitted)),</span>
+<span id="cb26-3"><a href="#cb26-3" aria-hidden="true" tabindex="-1"></a>         <span class="at">pred_leg =</span> <span class="fu">ifelse</span>(prob <span class="sc">&gt;</span> <span class="fl">0.5</span>, <span class="st">"All-Star"</span>, <span class="st">"Not All-Star"</span>))</span>
+<span id="cb26-4"><a href="#cb26-4" aria-hidden="true" tabindex="-1"></a><span class="fu">table</span>(m2_aug<span class="sc">$</span>pred_leg, m2_aug<span class="sc">$</span>All.Star)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>              
+                 0   1
+  All-Star       6  12
+  Not All-Star 426  42</code></pre>
 </div>
 </div>
 </section>

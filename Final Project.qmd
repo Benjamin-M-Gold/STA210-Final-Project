@@ -102,3 +102,73 @@ m2_aug <- augment(m2) %>%
 table(m2_aug$pred_leg, m2_aug$All.Star)
 
 ```
+
+```{r}
+# obp percentage lasso
+y <- stats$on_base_percent
+x <- model.matrix(on_base_percent ~ launch_angle_avg + sweet_spot_percent + 
+                    barrel + solidcontact_percent + flareburner_percent + 
+                    hard_hit_percent + avg_hyper_speed + z_swing_percent + 
+                    oz_swing_percent + meatball_swing_percent, data = stats)
+m_lasso_cv <- cv.glmnet(x, y, alpha = 1)
+best_lambda <- m_lasso_cv$lambda.min
+best_lambda
+m_best <- glmnet(x, y, alpha = 1, lambda = best_lambda)
+m_best$beta
+```
+
+```{r}
+# obp percentage prediction
+m3 <- lm(on_base_percent ~ sweet_spot_percent + 
+                    barrel + solidcontact_percent + flareburner_percent + 
+                    hard_hit_percent + z_swing_percent + 
+                    oz_swing_percent + meatball_swing_percent,
+  data = stats)
+
+summary(m3)
+
+m3_aug <- augment(m3)
+m3_aug |>
+ggplot(aes(x = .fitted, y = .resid)) + 
+  geom_point() + 
+  geom_hline(yintercept = 0, color = "darkred") + 
+  labs(x = "Fitted Values", 
+       y = "Residual") + 
+  theme_bw()
+```
+
+```{r}
+# slugging percentage lasso
+y <- stats$slg_percent
+x <- model.matrix(slg_percent ~ launch_angle_avg + sweet_spot_percent + 
+                    barrel + solidcontact_percent + flareburner_percent + 
+                    hard_hit_percent + avg_hyper_speed + z_swing_percent + 
+                    oz_swing_percent + meatball_swing_percent, data = stats)
+m_lasso_cv <- cv.glmnet(x, y, alpha = 1)
+best_lambda <- m_lasso_cv$lambda.min
+best_lambda
+m_best <- glmnet(x, y, alpha = 1, lambda = best_lambda)
+m_best$beta
+```
+
+
+```{r}
+# slugging percentage prediction
+m4 <- lm(slg_percent ~ launch_angle_avg + sweet_spot_percent + 
+                    barrel + solidcontact_percent + flareburner_percent + 
+                    hard_hit_percent + avg_hyper_speed + z_swing_percent + 
+                    oz_swing_percent + meatball_swing_percent,
+  data = stats)
+
+summary(m4)
+
+m4_aug <- augment(m4)
+m4_aug |>
+ggplot(aes(x = .fitted, y = .resid)) + 
+  geom_point() + 
+  geom_hline(yintercept = 0, color = "darkred") + 
+  labs(x = "Fitted Values", 
+       y = "Residual") + 
+  theme_bw()
+```
+

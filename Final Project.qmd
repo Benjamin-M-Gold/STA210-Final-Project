@@ -29,6 +29,7 @@ library(tidymodels)
 library(glmnet)
 library(caret) 
 library(MASS)
+library(lme4)
 stats <- read.csv("data/stats.csv")
 
 
@@ -36,17 +37,17 @@ stats <- replace(stats, stats =="", NA)
 stats <- stats %>%
   drop_na() %>%
   mutate(AVG300 = case_when(batting_avg >= .3 ~ "Greater than 300", TRUE ~ "Less than 300"),
-         HR40 = case_when(b_home_run >= 40 ~ "Greater than 40", TRUE ~ "Less than 40"))
+         HR40 = case_when(b_home_run >= 40 ~ "Greater than 40", TRUE ~ "Less than 40"), pitcher = case_when(Position == "SP" ~ "Yes", TRUE ~ "No"))
 view(stats)
 ```
 
 ## Lassos for Variable Selection
 
-```{r lasso,warning=FALSE, message=FALSE}
+```{r lasso-basic,warning=FALSE, message=FALSE}
 # LASSO Variable Selection Basic Stats
 y <- stats$All.Star
-x <- model.matrix(All.Star ~ player_age + b_ab + b_total_pa + b_total_hits + 
-                    b_double + b_triple + b_home_run + b_strikeout + b_walk + 
+x <- model.matrix(All.Star ~ player_age + b_ab + b_total_pa + b_total_hits + b_home_run + AVG300 * batting_avg +
+                    b_double + b_triple + b_home_run * HR40 + b_strikeout + b_walk + 
                     batting_avg + slg_percent + on_base_percent + Position, data = stats)
 m_lasso_cv <- cv.glmnet(x, y, alpha = 1)
 best_lambda <- m_lasso_cv$lambda.min
@@ -55,7 +56,7 @@ m_best <- glmnet(x, y, alpha = 1, lambda = best_lambda)
 m_best$beta
 ```
 
-```{r lasso2,warning=FALSE, message=FALSE}
+```{r lasso-adv,warning=FALSE, message=FALSE}
 # LASSO Variable Selection Advanced Stats
 y <- stats$All.Star
 x <- model.matrix(All.Star ~ player_age + launch_angle_avg + sweet_spot_percent + 
@@ -71,10 +72,10 @@ m_best$beta
 
 ## Regressions
 
-```{r}
+```{r basic-model-allstar, warning = FALSE, message=FALSE}
 #Basic model 
 m1 <- glm(All.Star ~ player_age + b_ab +  b_total_hits + 
-                    b_double + b_triple + HR40 + b_strikeout +
+                    b_double + b_triple + b_home_run + b_strikeout +
                     b_bb_percent + AVG300 + slg_percent +
                     on_base_percent + Position,
   data = stats,
@@ -83,11 +84,11 @@ m1 <- glm(All.Star ~ player_age + b_ab +  b_total_hits +
 tidy(m1)
 m1_aug <- augment(m1) %>% 
   mutate(prob = exp(.fitted)/(1 + exp(.fitted)),
-         pred_leg = ifelse(prob > 0.5, "All-Star", "Not All-Star"))
+         pred_leg = ifelse(prob > 0.32, "All-Star", "Not All-Star"))
 table(m1_aug$pred_leg, m1_aug$All.Star)
 ```
 
-```{r}
+```{r stacast-model-all-star, warning = FALSE, message=FALSE}
 #Advanced model 
 m2 <- glm(All.Star ~ player_age + launch_angle_avg + 
                     barrel + solidcontact_percent + flareburner_percent + 
@@ -98,12 +99,12 @@ m2 <- glm(All.Star ~ player_age + launch_angle_avg +
 tidy(m2)
 m2_aug <- augment(m2) %>% 
   mutate(prob = exp(.fitted)/(1 + exp(.fitted)),
-         pred_leg = ifelse(prob > 0.5, "All-Star", "Not All-Star"))
+         pred_leg = ifelse(prob > 0.32, "All-Star", "Not All-Star"))
 table(m2_aug$pred_leg, m2_aug$All.Star)
 
 ```
 
-```{r}
+```{r lasso-OBP, warning = FALSE, message=FALSE}
 # obp percentage lasso
 y <- stats$on_base_percent
 x <- model.matrix(on_base_percent ~ launch_angle_avg + sweet_spot_percent + 
@@ -117,7 +118,7 @@ m_best <- glmnet(x, y, alpha = 1, lambda = best_lambda)
 m_best$beta
 ```
 
-```{r}
+```{r statcast-obp, warning = FALSE, message=FALSE}
 # obp percentage prediction
 m3 <- lm(on_base_percent ~ sweet_spot_percent + 
                     barrel + solidcontact_percent + flareburner_percent + 
@@ -137,7 +138,7 @@ ggplot(aes(x = .fitted, y = .resid)) +
   theme_bw()
 ```
 
-```{r}
+```{r slg-lasso, warning = FALSE, message=FALSE}
 # slugging percentage lasso
 y <- stats$slg_percent
 x <- model.matrix(slg_percent ~ launch_angle_avg + sweet_spot_percent + 
@@ -152,7 +153,7 @@ m_best$beta
 ```
 
 
-```{r}
+```{r slg-predict, warning = FALSE, message=FALSE}
 # slugging percentage prediction
 m4 <- lm(slg_percent ~ launch_angle_avg + sweet_spot_percent + 
                     barrel + solidcontact_percent + flareburner_percent + 
@@ -171,4 +172,5 @@ ggplot(aes(x = .fitted, y = .resid)) +
        y = "Residual") + 
   theme_bw()
 ```
+
 

@@ -174,3 +174,20 @@ ggplot(aes(x = .fitted, y = .resid)) +
 ```
 
 
+```{r}
+# Subset for nationals
+nationals_stats <- stats |>
+  filter(Team == "WAS")
+
+# Predict
+pred_obp <- predict(m3, nationals_stats)
+pred_slg <- predict(m4, nationals_stats)
+
+# Add to DF
+nationals_stats <- nationals_stats |>
+  mutate(Predicted_OBP = pred_obp,
+         Predicted_SLG = pred_slg)
+
+# Display
+print(nationals_stats)
+```

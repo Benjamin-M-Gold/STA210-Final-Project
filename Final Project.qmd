@@ -11,10 +11,9 @@ Baseball, America's pastime, has a long and storied tradition that dates back we
 
 Do old or new wave statistics do a better job at predicting whether a player is selected as an all-star?
 
-The response variables of interest are: All.Star: Whether a player is selected as an all-star. Salary: How much money a player makes.
+The response variables of interest are: All.Star: Whether a player is selected as an all-star.
 
-For our analysis, we have selected two datasets. The first is from Baseball Reference, which consists of standard statistics that offer a broad view of a player's performance in a particular season. The second is from Statcast, which consists of each player's primary position. ADD MORE ABOUT WHAT WE DID WITH THE DATA HERE
-
+For our analysis, we have selected two datasets. The first is from Baseball Reference, which consists of standard statistics that offer a broad view of a player's performance in a particular season. The second is from Statcast, which consists of each player's primary position. The final data file we have was compiled from baseballsavant.com with a mix of more traditional stats and statcast stats. This complete file can be found in the stats.csv file. Once that was done, we entered a players position, salary, and team from baseball prospectus. we used wikipedia to find rosters for the 2019 all-star game and created a categorical variable column with that information.
 ## Methodology
 
 ## Results

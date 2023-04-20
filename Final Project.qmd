@@ -191,3 +191,8 @@ nationals_stats <- nationals_stats |>
 # Display
 print(nationals_stats)
 ```
+
+
+
+ARTICLE ABOUT BATTING ORDER STRATEGY:
+https://www.sportsbettingdime.com/guides/strategy/batting-order-sabermetrics/ 

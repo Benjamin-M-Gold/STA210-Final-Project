@@ -103,13 +103,19 @@ table(m2_aug$pred_leg, m2_aug$All.Star)
 
 ```
 
+```{r}
+# Remove Nationals from Data
+rol_stats <- stats |>
+  filter(Team != "WAS")
+```
+
 ```{r lasso-OBP, warning = FALSE, message=FALSE}
-# obp percentage lasso
-y <- stats$on_base_percent
+# obp percentage lasso for rol
+y <- rol_stats$on_base_percent
 x <- model.matrix(on_base_percent ~ launch_angle_avg + sweet_spot_percent + 
                     barrel + solidcontact_percent + flareburner_percent + 
                     hard_hit_percent + avg_hyper_speed + z_swing_percent + 
-                    oz_swing_percent + meatball_swing_percent, data = stats)
+                    oz_swing_percent + meatball_swing_percent, data = rol_stats)
 m_lasso_cv <- cv.glmnet(x, y, alpha = 1)
 best_lambda <- m_lasso_cv$lambda.min
 best_lambda
@@ -123,7 +129,7 @@ m3 <- lm(on_base_percent ~ sweet_spot_percent +
                     barrel + solidcontact_percent + flareburner_percent + 
                     hard_hit_percent + z_swing_percent + 
                     oz_swing_percent + meatball_swing_percent,
-  data = stats)
+  data = rol_stats)
 
 summary(m3)
 
@@ -139,11 +145,11 @@ ggplot(aes(x = .fitted, y = .resid)) +
 
 ```{r slg-lasso, warning = FALSE, message=FALSE}
 # slugging percentage lasso
-y <- stats$slg_percent
+y <- rol_stats$slg_percent
 x <- model.matrix(slg_percent ~ launch_angle_avg + sweet_spot_percent + 
                     barrel + solidcontact_percent + flareburner_percent + 
                     hard_hit_percent + avg_hyper_speed + z_swing_percent + 
-                    oz_swing_percent + meatball_swing_percent, data = stats)
+                    oz_swing_percent + meatball_swing_percent, data = rol_stats)
 m_lasso_cv <- cv.glmnet(x, y, alpha = 1)
 best_lambda <- m_lasso_cv$lambda.min
 best_lambda
@@ -151,14 +157,13 @@ m_best <- glmnet(x, y, alpha = 1, lambda = best_lambda)
 m_best$beta
 ```
 
-
 ```{r slg-predict, warning = FALSE, message=FALSE}
 # slugging percentage prediction
 m4 <- lm(slg_percent ~ launch_angle_avg + sweet_spot_percent + 
                     barrel + solidcontact_percent + flareburner_percent + 
                     hard_hit_percent + avg_hyper_speed + z_swing_percent + 
                     oz_swing_percent + meatball_swing_percent,
-  data = stats)
+  data = rol_stats)
 
 summary(m4)
 
@@ -171,7 +176,6 @@ ggplot(aes(x = .fitted, y = .resid)) +
        y = "Residual") + 
   theme_bw()
 ```
-
 
 ```{r}
 # Subset for nationals
@@ -188,7 +192,9 @@ nationals_stats <- nationals_stats |>
          Predicted_SLG = pred_slg)
 
 # Display
-print(nationals_stats)
+nationals_pred_stats <- nationals_stats[ , c("last_name", "first_name", "Position",
+                                             "Predicted_OBP", "Predicted_SLG")]
+
 ```
 
 

@@ -16,9 +16,11 @@ The response variables of interest are: All.Star: Whether a player is selected a
 For our analysis, we have selected two datasets. The first is from Baseball Reference, which consists of standard statistics that offer a broad view of a player's performance in a particular season. The second is from Statcast, which consists of each player's primary position. The final data file we have was compiled from baseballsavant.com with a mix of more traditional stats and statcast stats. This complete file can be found in the stats.csv file. Once that was done, we entered a players position, salary, and team from baseball prospectus. we used wikipedia to find rosters for the 2019 all-star game and created a categorical variable column with that information.
 ## Methodology
 
-## Results
 
-## Discussion
+
+
+
+
 
 ## Packages and Data
 
@@ -40,68 +42,14 @@ stats <- stats %>%
 view(stats)
 ```
 
-## Lassos for Variable Selection
 
-```{r lasso-basic,warning=FALSE, message=FALSE}
-# LASSO Variable Selection Basic Stats
-y <- stats$All.Star
-x <- model.matrix(All.Star ~ player_age + b_ab + b_total_pa + b_total_hits + b_home_run + AVG300 * batting_avg +
-                    b_double + b_triple + b_home_run * HR40 + b_strikeout + b_walk + 
-                    batting_avg + slg_percent + on_base_percent + Position, data = stats)
-m_lasso_cv <- cv.glmnet(x, y, alpha = 1)
-best_lambda <- m_lasso_cv$lambda.min
-best_lambda
-m_best <- glmnet(x, y, alpha = 1, lambda = best_lambda)
-m_best$beta
-```
 
-```{r lasso-adv,warning=FALSE, message=FALSE}
-# LASSO Variable Selection Advanced Stats
-y <- stats$All.Star
-x <- model.matrix(All.Star ~ player_age + launch_angle_avg + sweet_spot_percent + 
-                    barrel + solidcontact_percent + flareburner_percent + 
-                    hard_hit_percent + avg_hyper_speed + z_swing_percent + 
-                    oz_swing_percent + meatball_swing_percent, data = stats)
-m_lasso_cv <- cv.glmnet(x, y, alpha = 1)
-best_lambda <- m_lasso_cv$lambda.min
-best_lambda
-m_best <- glmnet(x, y, alpha = 1, lambda = best_lambda)
-m_best$beta
-```
+## Discussion
 
-## Regressions
+The biggest limitation of our model is that it only predicts on base and slugging percentage for players who are already in the major leagues.  While this is helpful for decisions for future seasons, the model is not able to shine any light on how a player may perform before they actually play in the major leagues.  Fortunately, major league baseball franchises have a well developed farm system where players spend years in the minor leagues.  This is the highest level of baseball, aside from the major league, in the United States, and they track all of the same stats that the MLB does.  Therefore, a natural progression for further work would be to try and predict a player's on base and slugging percentage 
 
-```{r basic-model-allstar, warning = FALSE, message=FALSE}
-#Basic model 
-m1 <- glm(All.Star ~ player_age + b_ab +  b_total_hits + 
-                    b_double + b_triple + b_home_run + b_strikeout +
-                    b_bb_percent + AVG300 + slg_percent +
-                    on_base_percent + Position,
-  data = stats,
-  family = "binomial"
-)
-tidy(m1)
-m1_aug <- augment(m1) %>% 
-  mutate(prob = exp(.fitted)/(1 + exp(.fitted)),
-         pred_leg = ifelse(prob > 0.32, "All-Star", "Not All-Star"))
-table(m1_aug$pred_leg, m1_aug$All.Star)
-```
 
-```{r stacast-model-all-star, warning = FALSE, message=FALSE}
-#Advanced model 
-m2 <- glm(All.Star ~ player_age + launch_angle_avg + 
-                    barrel + solidcontact_percent + flareburner_percent + 
-                    hard_hit_percent + meatball_swing_percent,
-  data = stats,
-  family = "binomial"
-)
-tidy(m2)
-m2_aug <- augment(m2) %>% 
-  mutate(prob = exp(.fitted)/(1 + exp(.fitted)),
-         pred_leg = ifelse(prob > 0.32, "All-Star", "Not All-Star"))
-table(m2_aug$pred_leg, m2_aug$All.Star)
-
-```
+## Results
 
 ```{r}
 # Remove Nationals from Data
@@ -125,7 +73,7 @@ m_best$beta
 
 ```{r statcast-obp, warning = FALSE, message=FALSE}
 # obp percentage prediction
-m3 <- lm(on_base_percent ~ sweet_spot_percent + 
+m3 <- lm(on_base_percent ~ launch_angle_avg + sweet_spot_percent + 
                     barrel + solidcontact_percent + flareburner_percent + 
                     hard_hit_percent + z_swing_percent + 
                     oz_swing_percent + meatball_swing_percent,
@@ -194,8 +142,70 @@ nationals_stats <- nationals_stats |>
 # Display
 nationals_pred_stats <- nationals_stats[ , c("last_name", "first_name", "Position",
                                              "Predicted_OBP", "Predicted_SLG")]
+print(nationals_pred_stats)
+```
+
+## Variable Selections and Regressions we tried
+
+```{r lasso-basic,warning=FALSE, message=FALSE}
+# LASSO Variable Selection Basic Stats
+y <- stats$All.Star
+x <- model.matrix(All.Star ~ player_age + b_ab + b_total_pa + b_total_hits + b_home_run + AVG300 * batting_avg +
+                    b_double + b_triple + b_home_run * HR40 + b_strikeout + b_walk + 
+                    batting_avg + slg_percent + on_base_percent + Position, data = stats)
+m_lasso_cv <- cv.glmnet(x, y, alpha = 1)
+best_lambda <- m_lasso_cv$lambda.min
+best_lambda
+m_best <- glmnet(x, y, alpha = 1, lambda = best_lambda)
+m_best$beta
+```
+
+```{r lasso-adv,warning=FALSE, message=FALSE}
+# LASSO Variable Selection Advanced Stats
+y <- stats$All.Star
+x <- model.matrix(All.Star ~ player_age + launch_angle_avg + sweet_spot_percent + 
+                    barrel + solidcontact_percent + flareburner_percent + 
+                    hard_hit_percent + avg_hyper_speed + z_swing_percent + 
+                    oz_swing_percent + meatball_swing_percent, data = stats)
+m_lasso_cv <- cv.glmnet(x, y, alpha = 1)
+best_lambda <- m_lasso_cv$lambda.min
+best_lambda
+m_best <- glmnet(x, y, alpha = 1, lambda = best_lambda)
+m_best$beta
+```
+
+```{r basic-model-allstar, warning = FALSE, message=FALSE}
+#Basic model 
+m1 <- glm(All.Star ~ player_age + b_ab +  b_total_hits + 
+                    b_double + b_triple + b_home_run + b_strikeout +
+                    b_bb_percent + AVG300 + slg_percent +
+                    on_base_percent + Position,
+  data = stats,
+  family = "binomial"
+)
+tidy(m1)
+m1_aug <- augment(m1) %>% 
+  mutate(prob = exp(.fitted)/(1 + exp(.fitted)),
+         pred_leg = ifelse(prob > 0.32, "All-Star", "Not All-Star"))
+table(m1_aug$pred_leg, m1_aug$All.Star)
+```
+```{r stacast-model-all-star, warning = FALSE, message=FALSE}
+#Advanced model 
+m2 <- glm(All.Star ~ player_age + launch_angle_avg + 
+                    barrel + solidcontact_percent + flareburner_percent + 
+                    hard_hit_percent + meatball_swing_percent,
+  data = stats,
+  family = "binomial"
+)
+tidy(m2)
+m2_aug <- augment(m2) %>% 
+  mutate(prob = exp(.fitted)/(1 + exp(.fitted)),
+         pred_leg = ifelse(prob > 0.32, "All-Star", "Not All-Star"))
+table(m2_aug$pred_leg, m2_aug$All.Star)
 
 ```
+
+
 
 
 

@@ -7,47 +7,48 @@ author: "Benji Gold and Sam Alkalay"
 
 ## Introduction
 
-Baseball, America's pastime, has a long and storied tradition that dates back well over 100 years. Since the 1850's, some form of statistics measuring how good a player is has been tracked. This began through the use of the box score, which tracked basic statistics, such as hits, runs, and errors, from which a player's batting average can be constructed. Over one hundred years later, a pioneering statistician by the name of Bill James introduced new statistical concepts, such as on-base percentage and runs created, in his annual Baseball Abstract (Lee 2018). As technology has improved, the statistics being tracked became more and more sophisticated. Then, in 2015 analytics in baseball took a giant leap. With the introduction of Statcast, teams were able to track novel metrics, such as a batter's exit velocity (the speed of the baseball as it comes off the bat, immediately after a batter makes contact) and barrel percentage (the percentage of baseballs hit off of the player's barrel) ("Statcast Search"). Around the league, teams adopted these new statistics to try and gain a competitive advantage, through which they would be able to better predict a player's potential. However, is this actually the case? While these new statistics are widely used, it is unclear whether they actually provide any useful information for predicting a player's potential. This research project intends to explore that idea through the use of a logistic regression model to predict whether a player is an all-star. The research question of interest is:
+Baseball, America's pastime, has a storied tradition that dates back over 100 years. Since the 1850's, some form of statistics measuring how good a player is has been tracked. This began through the use of the box score, which tracked basic statistics, such as hits, runs, and errors, from which a player's batting average can be constructed. Over one hundred years later, a pioneering statistician by the name of Bill James introduced new statistical concepts, such as on-base percentage and runs created, in his annual Baseball Abstract (Lee 2018). As technology improved, the statistics being tracked became more and more sophisticated. In 2015 analytics in baseball took a giant leap. With the introduction of Statcast, teams were able to track novel metrics, such as a battted ball's exit velocity (the speed of the baseball as it comes off the bat, immediately after a batter makes contact) and barrel percentage (the percentage of baseballs hit off of the player's barrel) ("Statcast Search"). Around the league, teams adopted these new statistics to try and gain a competitive advantage, through which they would be able to better predict a player's potential. However, is this actually the case? While these new statistics are widely used, it is unclear whether they actually provide any useful information for predicting a player's potential. This research project intends to explore that idea through the use of a logistic regression model to predict whether a player is an all-star. The research question of interest is:
 
 Do old or new wave statistics do a better job at predicting whether a player is selected as an all-star?
 
-The response variables of interest are: All.Star: Whether a player is selected as an all-star.
+The response variables of interest is: All.Star: Whether a player is selected as an all-star. This is a categorical varialbe
 
-For our analysis, we have selected two datasets. The first is from Baseball Reference, which consists of standard statistics that offer a broad view of a player's performance in a particular season. The second is from Statcast, which consists of each player's primary position. The final data file we have was compiled from baseballsavant.com with a mix of more traditional stats and statcast stats. This complete file can be found in the stats.csv file. Once that was done, we entered a players position, salary, and team from baseball prospectus. we used wikipedia to find rosters for the 2019 all-star game and created a categorical variable column with that information.
+For our analysis, we compiled a dataset from baseballsavant.com with a mix of more traditional stats and statcast stats. This complete file can be found in the stats.csv file. Once that was done, we entered a players position, salary, and team from baseball prospectus. we used wikipedia to find rosters for the 2019 all-star game and created a categorical variable column with that information.
 
 ## Methodology
 
-Our original research question involved predicting whether or not a player was an all-star in 2019 based on their full season statistics for that season. Using our domain knowledge we realized that whether or not a palyer is designated an All-star is not simply a measure of skill (which typical baseball statistics are designed to measure), but of popularity. This is true because of how all-stars are determined. The starters for the all-star team in each league are determined by fan vote so a bad player who is popular with fans might still be selected an all-star, regardless of their overall statistical skill. Because of this, our first decision in our methodology was to create two new categorical variables, one for if a player hit more than 40 Home Runs in 2019 and one for if a player had a batting average higher than 300. These variables are meant to measure fame based off a semi-arbitrary criteria based on how fans view baseball. Our domain knowledge tells us that a player is generally considered elite by fans if they hit more than 40 home runs or have an average higher than 300. Home runs and batting average are sort of heuristic statistics that fans use to measure player quality and thus these effects should be included in our model. The addition of these variables can be found in the packages and data section on code line ________________
+Our original research question involved predicting whether or not a player was an all-star in 2019 based on their full season statistics for that season. Using our domain knowledge we realized that whether or not a palyer is designated an All-star is not simply a measure of skill (which typical baseball statistics are designed to measure), but of popularity. This is true because of how all-stars are determined. The starters for the all-star team in each league are determined by fan vote so a bad player who is popular with fans might still be selected an all-star. Because of this, our first decision was to create two new categorical variables, one for if a player hit more than 40 Home Runs (HR) in 2019 and one for if a player had a batting average (AVG) higher than 0.300. These variables are meant to measure fame based off a semi-arbitrary criteria based on how fans view baseball. Our domain knowledge tells us that a player is generally considered elite by fans if they hit more than 40 HRs or have an AVG higher than 0.300. Home runs and batting average are sort of heuristic statistics that fans use to measure player quality and thus these effects should be included in our model. The addition of these variables can be found in the packages and data section on code line ________________
 
-Part of our research question was comparing models using advanced statistics to those that use more typical baseball statistics. We divided the stats in our data set into three categories: General stats, typical stats, and advanced stats. The general stats are basic player background statistics like age, and position. The typical stats were statistics we could find on the basic page of a players baseballreference page. The advanced stats were things we could only find on baseballsavant. All analyses discussed were performed twice, once on the general variables combined with the typical statistics and once with the general variables combined with the advanced stats.
+Part of our research question was comparing models using advanced statistics to those that use more typical baseball statistics. We divided the stats in our data set into three categories: General information, typical stats, and advanced stats. The general inromation is basic player background statistics like age, and position. The typical stats were statistics we could find on the basic page of a players baseballreference page. The advanced stats were things we could only find on baseballsavant. All analyses discussed were performed twice, once on the general variables combined with the typical statistics and once with the general variables combined with the advanced stats.
 
 Our response variable is a categorical variable, with a 1 if a player was an all-star and a 0 if the player-was not an all-star. Thus, we decided to perform a logistic regression on our data. Prior to running our logistic regression we performed a lasso on both subsets of the data. We choose to use a lasso because we wanted to optimize the predictive power of the model. We also worried about correlation among our predictors, which would make step-wise selection methods work poorly.
 
-We ran the lasso on both sets of models and then ran logistic regressions, measuring our success by the sensitivity of the model with a 32% probability threshold for categorization. The typical statistics model had a sensitivity of 55.5% and the advanced stats model had a sensitivity of about 44.5%. Neither of these results were very encouraging. Because of this, we went back and thought about our model. We realized that many of our predictors were highly correlated, which would make the lasso work porley for variable selection (which is obvious if you look at the lasso in our appendix and see that variables that our domain knowledge said were likely to be relevant such as batting average were selected out of the model). We also think that we had a problem with scarce data. Only 54 players in our data set were all-stars in 2019, which makes it difficult for our model to differentiate between all-stars and non-all stars, even with our low probability threshold for categorization as an all-star because it didn't have a large sample of all-stars to train on. The results for this can be found in the appendix for a view of our results, but because of the low sensitivity and methodological problems of these models we decided to try something new instead.
+We ran the lasso on both sets of models and then ran logistic regressions, measuring our success by the sensitivity of the model with a 32% probability threshold for categorization. The typical statistics model had a sensitivity of 55.5% and the advanced stats model had a sensitivity of about 44.5%. Neither of these results were very encouraging. Because of this, we went back and thought about our model. We realized that many of our predictors were highly correlated, which would make the lasso work poorly for variable selection (which is obvious if you look at the lasso in our appendix and see that variables that our domain knowledge said were likely to be relevant such as AVG were selected out of the model). We also think that we had a problem with scarce data. Only 54 players in our data set were all-stars in 2019, which makes it difficult for our model to differentiate between all-stars and non-all stars, even with our low probability threshold for categorization as an all-star because it didn't have a large sample of all-stars to train on. The results for this can be found in the appendix for a view of our results, but because of the low sensitivity and methodological problems of these models we decided to try something new instead.
 
 Because of these difficulties, we slightly reevaluated our research question. We decided to instead attempt to predict slugging percentage and on-base percentage from the advanced statistics (we couldn't predict using the typical statistics because these response variables are highly correlated, and in fact directly calculated from the typical statistics we measured). This is a valuable project because it can help us compare the outcomes we get from measuring performance through advanced metrics to the ones we get using typical statistics. We also used this to evaluate tenancies of where a player should be placed in a batting order, comparing the popular knowledge about batting order determinations, which are based on the typical box-score statistics, to what advanced statcast knowledge says you should do.
 
-Our methods for this were very similar to our methods for the all-star regressions, except we started by removing players who were on the Washington Nationals, so we could use them as a test data set for our model. We then used a lasso for the same reasons described above (fears of correlation among the predictors as well as our ability to optimize for predictive performance). We then ran a linear regression to predict slugging percentage and on-base percentage separately. we ran lassos to separately select variables for these two different regressions. Batting average and slugging percentage are continuous variables thus making linear regression work quiet well. We chose not to include any interactions because each of the statistics are calculated to represent different aspects of player performance and are thus not meant to be taken together.
+Our methods for this were very similar to our methods for the all-star regressions, except we started by removing players who were on the Washington Nationals, so we could use them as a test data set for our model. We then used a lasso for the same reasons described above (fears of correlation among the predictors as well as our ability to optimize for predictive performance). We then ran a linear regression to predict slugging percentage and on-base percentage separately. we ran lassos to separately select variables for these two different regressions. Batting average and slugging percentage are continuous variables thus making linear regression work quiet well. We chose not to include any interactions because each of the statistics are calculated to represent different aspects of player performance and are thus not meant to be taken together. Our final models were these linear models trained on the advanced statistics, as defined in the data dictionary.
 
-Following the linear regression we ran diagnostics such as making a QQ-Plot and Residual plot (which can be seen in the code chunks labelled statcast-obp, and slg-predict in the results section). Neither regression shows a clear pattern in the residual plots, though their do seem to be certian areas (over 0.3 for the OBP regression) where there is more data than lower on-base percentage values. There is also some worry about constant variance in the On-base percentage regression around the fitted value of 0.2, but in general, the assumptions of linearity and constant variance seem to be valid for both plots. The QQ-plots are meant to test normality. The on-base percentage QQ-Plot deviates from normality, but this deviation is largely in the tails, thus we think this assumption is fairly satisfied. The QQ-plot doesnt' deviate much for the slugging percentage regression and thus we think normality is fine for the slugging percentage regression. Independence is also satisfied because we are looking at the player level. If we were looking at typical statistics their might be some violation of independence based on the team the player played for but advanced statistics are designed such that they are independent. This is why exit-velocity is used rather than say, hit distance. Exit velocity cannot be altered by environmental conditions (and thus what team a player plays for), but distance a ball travels is altered by the elevation of a stadium. These linear regressions satisfy our assumptions and can thus be used for analysis.
+Following the linear regression we ran diagnostics such as making a QQ-Plot and Residual plot (which can be seen in the code chunk labelled statcast-obp,in the results section). Neither regression shows a clear pattern in the residual plots, but here is some worry about constant variance in the On-base percentage regression around the fitted value of 0.2.In general, however, we judged that the assumptions of linearity and constant variance seem to be valid for both plots. The QQ-plots are meant to test normality. The on-base percentage QQ-Plot deviates from normality, but this deviation is largely in the tails, thus we think this assumption is  satisfied. The QQ-plot doesn't' deviate much for the slugging percentage regression and thus we think normality is fine for the slugging percentage regression. Independence is also satisfied because we are looking at the player level. If we were looking at typical statistics their might be some violation of independence based on the team the player played for but advanced statistics are designed such that they are independent. This is why exit-velocity is used rather than say, hit distance. Exit velocity cannot be altered by environmental conditions (and thus what team a player plays for), but distance a ball travels is altered by the elevation of a stadium. These linear regressions satisfy our assumptions and can thus be used for analysis.
 
 
 ## Packages and Data
 
 ```{r libs, message=FALSE, warning=FALSE}
-library(tidyverse)
+library(tidyverse) 
 library(tidymodels) 
-library(glmnet)
+library(glmnet) 
 library(caret) 
-library(MASS)
+library(MASS) 
 library(lme4)
 stats <- read.csv("data/stats.csv")
 stats <- replace(stats, stats =="", NA)
 stats <- stats %>%
   drop_na() %>%
-  mutate(AVG300 = case_when(batting_avg >= .3 ~ "Greater than 300", TRUE ~ "Less than 300"),
-         HR40 = case_when(b_home_run >= 40 ~ "Greater than 40", TRUE ~ "Less than 40"), pitcher = case_when(Position == "SP" ~ "Yes", TRUE ~ "No"))
-view(stats)
+  mutate(AVG300 = case_when(batting_avg >= .3 ~ "Greater than 300", 
+                TRUE ~ "Less than 300"), HR40 = case_when(b_home_run >= 40 ~ 
+                "Greater than 40", TRUE ~ "Less than 40"), 
+                pitcher = case_when(Position == "SP" ~ "Yes", TRUE ~ "No"))
 # Remove Nationals from Data
 rol_stats <- stats |>
   filter(Team != "WAS")
@@ -56,7 +57,6 @@ rol_stats <- stats |>
 ## Results
 
 ```{r lasso-OBP, warning = FALSE, message=FALSE}
-
 # obp percentage lasso for rol
 set.seed(0)
 y <- rol_stats$on_base_percent
@@ -67,7 +67,6 @@ x <- model.matrix(on_base_percent ~ launch_angle_avg + sweet_spot_percent +
 m_lasso_cv <- cv.glmnet(x, y, alpha = 1)
 best_lambda <- m_lasso_cv$lambda.min
 best_lambda
-plot(m_lasso_cv)
 m_best <- glmnet(x, y, alpha = 1, lambda = best_lambda)
 m_best$beta
 ```
@@ -79,9 +78,7 @@ m3 <- lm(on_base_percent ~ launch_angle_avg + sweet_spot_percent +
                     hard_hit_percent + z_swing_percent + 
                     oz_swing_percent + meatball_swing_percent,
   data = rol_stats)
-
-summary(m3)
-
+tidy(m3)
 m3_aug <- augment(m3)
 m3_aug |>
 ggplot(aes(x = .fitted, y = .resid)) + 
@@ -90,13 +87,11 @@ ggplot(aes(x = .fitted, y = .resid)) +
   labs(x = "Fitted Values", 
        y = "Residual") + 
   theme_bw()
-
 ggplot(m3_aug, aes(sample = .resid)) +
-stat_qq() +
-stat_qq_line() +
-theme_bw() +
-labs(x = "Theoretical quantiles",
-y = "Sample quantiles")
+  stat_qq() + 
+  stat_qq_line() + 
+  theme_bw() +
+  labs(x = "Theoretical quantiles", y = "Sample quantiles")
 ```
 
 ```{r slg-lasso, warning = FALSE, message=FALSE}
@@ -110,21 +105,18 @@ x <- model.matrix(slg_percent ~ launch_angle_avg + sweet_spot_percent +
 m_lasso_cv <- cv.glmnet(x, y, alpha = 1)
 best_lambda <- m_lasso_cv$lambda.min
 best_lambda
-plot(m_lasso_cv)
 m_best <- glmnet(x, y, alpha = 1, lambda = best_lambda)
 m_best$beta
 ```
-
-```{r slg-predict, warning = FALSE, message=FALSE}
+The code chunk that generates the outputs below is not visualized here, but can be found in the qmd on Github. We chose to exclude the code because it is the same as the 'statcast-obp' code chunk, just with the linner model to predict slugging percentage instead.
+```{r slg-predict, warning = FALSE, message=FALSE, include = FALSE}
 # slugging percentage prediction
 m4 <- lm(slg_percent ~ launch_angle_avg + sweet_spot_percent + 
                     barrel + solidcontact_percent + flareburner_percent + 
                     hard_hit_percent + avg_hyper_speed + z_swing_percent + 
                     oz_swing_percent + meatball_swing_percent,
   data = rol_stats)
-
-summary(m4)
-
+tidy(m4)
 m4_aug <- augment(m4)
 m4_aug |>
 ggplot(aes(x = .fitted, y = .resid)) + 
@@ -133,7 +125,6 @@ ggplot(aes(x = .fitted, y = .resid)) +
   labs(x = "Fitted Values", 
        y = "Residual") + 
   theme_bw()
-
 ggplot(m4_aug, aes(sample = .resid)) +
 stat_qq() +
 stat_qq_line() +
@@ -141,7 +132,7 @@ theme_bw() +
 labs(x = "Theoretical quantiles",
 y = "Sample quantiles")
 ```
-  The final models for predicting on base and slugging percentage are both linear regressions.  Their variables were chosen using LASSO for the advanced statistics, as defined by the data dictionary.  These models were trained on data from the 2019 season for each team, aside from the Washington Nationals, which were used as a test set.  We decided it was most appropriate to use a whole team as a test set because it provided a variety of positions and was most useful in terms of comparing expected lineups ( lineups that would be expected to generate the most runs) to actual lineups.
+   These models were trained on data from the 2019 season for each team, aside from the Washington Nationals, which were used as a test set.  We decided it was most appropriate to use a whole team as a test set because it provided a variety of positions and was most useful in terms of comparing expected lineups (lineups that would be expected to generate the most runs) to actual lineups.
   Now, the LASSO for the on base percentage model had a best lambda of approximately 0.000733 using 10-fold cross validation, and the variables included were launch_angle_avg, sweet_spot_percent, barrel, solidcontact_percent, flareburner_percent, hard_hit_percent, z_swing_percent, oz_swing_percent, and meatball_swing_percent.  After using these variables in the linear regression, we were able to conclude that the assumptions for a linear regression were satisfied because in the residual plot we see mostly symmetrically distributed and evenly spaced observations, satisfying the criteria for linearity and constant variance.  Furthermore, there is a slight correlation between the predictors and no clear deviation patterns, aside from the ends, in the Q-Q plot, satisfying the assumption for independence and normality.  Moreover, 69.94% of the variation in OBP was explained by the predictors in the model (adjusted R-squared).  
   Among the significant variables in this linear regression, one of the most notable positive predictors was flareburner_percent.  Holding all other predictors constant, for each 1% increase in flareburner_percent, expected on base percentage increases by approximately 0.380%.  On the other hand, one of the most notable negative predictors was oz_swing_percent. Holding all other predictors constant, for each 1% increase in flareburner_percent, expected on base percentage decreases by approximately 0.302%.  These results both make sense in the context of the game because being able to hit a variety of pitches would make a batter better, while swinging at bad pitches would make a batter worse. 
   Moving on to slugging percentage, we observed a best lambda of approximately 0.00165, and the variables included were launch_angle_avg, sweet_spot_percent, barrel, solidcontact_percent, flareburner_percent, hard_hit_percent, avg_hyper_speed, z_swing_percent, oz_swing_percent, and meatball_swing_percent.  Like the other model, all assumptions for a linear regression were met, and 72.87% of the variation was explained by the predictors in the model.  
@@ -152,26 +143,23 @@ y = "Sample quantiles")
 In this study, we aimed to develop predictive models for on base percentage and slugging percentage using advanced statistics in the MLB.  Our results showed that the best models for this were linear regressions, and the selected variables were significant predictors of on base and slugging percentage in the 2019 MLB season. 
 Our findings suggest that advanced statistics can be used to predict player performance and improve team strategies. For example, our models highlighted the importance of flareburner_percent and oz_swing_percent in predicting on base percentage. These findings suggest that players who can hit a variety of pitches are more likely to perform better, while those who swing at bad pitches are less likely to reach base. These insights can be useful for teams when selecting players or developing strategies to optimize their lineups.
 Moreover, our models revealed that sweet_spot_percent and barrel were the most notable predictors of slugging percentage. These findings suggest that players who can consistently hit the ball at certain angles and on a specific part of their bat are more likely to generate more extra base hits. Therefore, teams can use this information to identify players who are more likely to produce high slugging percentages, which is a key factor in offensive success in baseball.
-Despite the promising results of our study, there are some limitations to our analysis. First, our data only covers the 2019 season, and it is possible that our models may not be generalizable to other seasons or contexts.  Furthermore, this is a generalized model that does not take into account unique player and stadium advantages.  For example, certain players hit far better against right handed pitchers than left handed pitchers, and a team’s optimal lineup should change based on the type of pitcher they are facing.  Also, stadiums at higher altitudes, like the one in Colorado, favor more powerful hitters because its altitude is higher, which makes the baseball go approximately 10% further (CITE).  This would also warrant a game specific change in the lineup.
-However, the biggest limitation of our model is that it only predicts on base and slugging percentage for players who are already in the major leagues.  While this is helpful for decisions for future seasons, the model is not able to shine any light on how a player may perform before they actually play in the major leagues.  Fortunately, major league baseball franchises have a well developed farm system where players spend years in the minor leagues.  This is the highest level of baseball, aside from the major league, in the United States, and they track all of the same stats that the MLB does.  Therefore, a natural progression for future work would be to try and predict a player's on base and slugging percentage based on their advanced statistics in the minor leagues.  This would give teams a better gauge on how players would perform in the major leagues, rather than how players would perform in future seasons after they have already made it to the majors.  With this type of model, teams would have a better idea of how to strategically bring up players and put the team that gives them the best chance of winning on the field.
+Despite the promising results of our study, there are some limitations to our analysis. First, our data only covers the 2019 season, and it is possible that our models may not be generalizable to other seasons or contexts.  Furthermore, this is a generalized model that does not take into account unique player and stadium advantages.  For example, certain players hit far better against right handed pitchers than left handed pitchers, and a team’s optimal lineup should change based on the type of pitcher they are facing.  Also, stadiums at higher altitudes, like the one in Colorado, favor more powerful hitters because its altitude is higher, which makes the baseball go approximately 10% further (CITE). This would also warrant a game specific change in the lineup.
+However, the biggest limitation of our model is that it only predicts on base and slugging percentage for players who are already in the major leagues.  While this is helpful for decisions for future seasons, the model is not able to shine any light on how a player may perform before they actually play in the major leagues.  Fortunately, major league baseball franchises have a well developed farm system where players spend years in the minor leagues.  This is the highest level of baseball, aside from the major league, in the United States, and they track all of the same stats that the MLB does. Therefore, a natural progression for future work would be to try and predict a player's on base and slugging percentage based on their advanced statistics in the minor leagues.  This would give teams a better gauge on how players would perform in the major leagues, rather than how players would perform in future seasons after they have already made it to the majors.  With this type of model, teams would have a better idea of how to strategically bring up players and put the team that gives them the best chance of winning on the field.
 
-
-```{r}
+The code chunk that prints the nationals data is not printed. See the github repo for the code.
+```{r nats-stats, message=FALSE, warning=FALSE, include = FALSE}
 # Subset for nationals
 nationals_stats <- stats |>
   filter(Team == "WAS")
-
 # Predict
 pred_obp <- predict(m3, nationals_stats)
 pred_slg <- predict(m4, nationals_stats)
-
 # Add to DF
 nationals_stats <- nationals_stats |>
   mutate(Predicted_OBP = pred_obp,
          Predicted_SLG = pred_slg)
-
 # Display
-nationals_pred_stats <- nationals_stats[ , c("last_name", "first_name", "Position",
+nationals_pred_stats <- nationals_stats[ ,c("last_name","first_name","Position",
                                              "Predicted_OBP", "Predicted_SLG")]
 print(nationals_pred_stats)
 ```
@@ -181,9 +169,10 @@ print(nationals_pred_stats)
 ```{r lasso-basic,warning=FALSE, message=FALSE}
 # LASSO Variable Selection Basic Stats
 y <- stats$All.Star
-x <- model.matrix(All.Star ~ player_age + b_ab + b_total_pa + b_total_hits + b_home_run + AVG300 * batting_avg +
-                    b_double + b_triple + b_home_run * HR40 + b_strikeout + b_walk + 
-                    batting_avg + slg_percent + on_base_percent + Position, data = stats)
+x <- model.matrix(All.Star ~ player_age + b_ab + b_total_pa + b_total_hits + 
+                    b_home_run + AVG300 * batting_avg +b_double + b_triple + 
+                    b_home_run * HR40 + b_strikeout + b_walk + batting_avg + 
+                    slg_percent + on_base_percent + Position, data = stats)
 m_lasso_cv <- cv.glmnet(x, y, alpha = 1)
 best_lambda <- m_lasso_cv$lambda.min
 best_lambda

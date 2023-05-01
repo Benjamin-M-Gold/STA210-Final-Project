@@ -28,6 +28,12 @@ nationals_stats <- stats |>
   filter(Team == "WAS")
 rol_stats <- stats |>
   filter(Team != "WAS")
+
+m4 <- lm(slg_percent ~ launch_angle_avg + sweet_spot_percent + 
+                    barrel + solidcontact_percent + flareburner_percent + 
+                    hard_hit_percent + avg_hyper_speed + z_swing_percent + 
+                    oz_swing_percent + meatball_swing_percent,
+  data = rol_stats)
 ```
 
 ## Introduction:
@@ -76,14 +82,14 @@ m_best$beta
 After using these variables in the linear regression (included below), we were able to conclude that the assumptions for a linear regression were satisfied because in the residual plot we see mostly symmetrically distributed and evenly spaced observations, satisfying the criteria for linearity and constant variance. Furthermore, there is a slight correlation between the predictors and no clear deviation patterns, aside from the ends, in the Q-Q plot, satisfying the assumption for independence and normality. Moreover, 69.94% of the variation in OBP was explained by the predictors in the model (adjusted R-squared).
 
 ```{r statcast-obp, warning = FALSE, message=FALSE}
-# Nationals obp prediction
+# Rol obp linear model
 m3 <- lm(on_base_percent ~ launch_angle_avg + sweet_spot_percent + 
                     barrel + solidcontact_percent + flareburner_percent + 
                     hard_hit_percent + z_swing_percent + 
                     oz_swing_percent + meatball_swing_percent,
   data = rol_stats)
 tidy(m3)
-
+summary(m3)$adj.r.squared
 ```
 
 ```{r statcast-obp-graphs, warning = FALSE, message=FALSE}
@@ -112,6 +118,41 @@ Moving on to the LASSO regression for slugging percentage, we observed a best la
 
 Among the significant variables in slugging percentage model, the most notable predictors were sweet_spot_percent and barrel. Holding all other predictors constant, for each 1% increase in each of these predictors, expected slugging percentage increases by approximately 0.386% and 0.358% respectively. oz_swing_percent still had a negative correlation in this model, but its impact was far less. These results make sense as slugging percentage is based on how good a player's hit is, and both of these predictors are strongly associated with doubles, triples, and home runs, while OBP is only based on whether a player reaches a base.
 
+After determining that the models fit the data well, we utilized them to forecast the on-base and slugging percentages for all Washington Nationals players. Using these projections, we employed a Sabermetrics batting order approach to create an optimal batting order for the team (“How Sabermetrics Influence Baseball"). The output of the batting order, including a pinch hitter at 10, is below, and the code used is included in the appendix under section 3.2. 
+
+```{r nats-stats, message=FALSE, warning=FALSE, echo=FALSE}
+# Predict Nationals stats
+pred_obp <- predict(m3, nationals_stats)
+pred_slg <- predict(m4, nationals_stats)
+
+# Add predicted stats to df
+nationals_stats <- nationals_stats |>
+  mutate(Predicted_OBP = pred_obp,
+         Predicted_SLG = pred_slg)
+
+# Create optimal lineup using one of each position
+nationals_pred_stats <- nationals_stats |>
+  group_by(Position) |>
+  slice(which.max(Predicted_OBP)) 
+
+# Group important columns for output
+nationals_pred_stats <- nationals_pred_stats[ ,c("last_name", "first_name", "Position",
+                                             "Predicted_OBP", "Predicted_SLG")]
+
+# Manually change batting order based on Sabermetrics
+last_name_order <- c("Soto", "Rendon", "Turner", "Kendrick III", "Suzuki", "Dozier", "Eaton",
+                     "Taylor", "Strasburg", "Stevenson")
+
+nationals_pred_stats <- nationals_pred_stats[match(last_name_order,
+                                                   nationals_pred_stats$last_name),]
+
+# Remove quotation marks around the first name column
+nationals_pred_stats$first_name <- noquote(nationals_pred_stats$first_name)
+
+# Display results
+print(nationals_pred_stats)
+```
+
 ## Discussion:
 
 In this study, we aimed to develop predictive models for on base percentage and slugging percentage using advanced statistics in the MLB. Our results showed that the best models for this were linear regressions, and the selected variables were significant predictors of on base and slugging percentage in the 2019 MLB season.
@@ -121,10 +162,8 @@ Our findings suggest that advanced statistics can be used to predict player perf
 Despite the promising results of our study, there are some limitations to our analysis. First, our data only covers the 2019 season, and it is possible that our models may not be generalizable to other seasons or contexts. Furthermore, this is a generalized model that does not take into account unique player and stadium advantages. For example, certain players hit far better against right handed pitchers than left handed pitchers, and a team's optimal lineup should change based on the type of pitcher they are facing. Also, stadiums at higher altitudes, like the one in Colorado, favor more powerful hitters because its altitude is higher, which makes the baseball go approximately 10% further (Welling). This would also warrant a game specific change in the lineup.
 
 However, the biggest limitation of our model is that it only predicts on base and slugging percentage for players who are already in the major leagues. While this is helpful for decisions for future seasons, the model is not able to shine any light on how a player may perform before they actually play in the major leagues. Fortunately, major league baseball franchises have a well developed farm system where players spend years in the minor leagues. This is the highest level of baseball, aside from the major league, in the United States, and they track all of the same stats that the MLB does. Therefore, a natural progression for future work would be to try and predict a player's on base and slugging percentage based on their advanced statistics in the minor leagues. This would give teams a better gauge on how players would perform in the major leagues, rather than how players would perform in future seasons after they have already made it to the majors. With this type of model, teams would have a better idea of how to strategically bring up players and put the team that gives them the best chance of winning on the field.
-
-The code chunk that prints the nationals data is not printed. See the github repo for the code.
-
 \newpage
+
 ## Works Cited
 
 “How Sabermetrics Influence Baseball Batting Order Strategy.” Sports Betting Dime, \ https://www.sportsbettingdime.com/guides/strategy/batting-order-sabermetrics/. 
@@ -137,6 +176,7 @@ https://medium.com/\@190654/history-of-baseball-statistics-6f2b13f5de20.
 Welling, Craig. "Did Humidifying the Baseball Decrease the Number of Homers at Coors
 Field"https://ww2.amstat.org/mam/2010/essays/PennBaseball.pdf.
 \newpage
+
 ## Appendix
 
 #### 1.1:
@@ -270,13 +310,14 @@ m_best$beta
 ```
 
 ```{r, warning = FALSE, message=FALSE}
-# Slugging percentage prediction
+# Rol slugging percentage linear model
 m4 <- lm(slg_percent ~ launch_angle_avg + sweet_spot_percent + 
                     barrel + solidcontact_percent + flareburner_percent + 
                     hard_hit_percent + avg_hyper_speed + z_swing_percent + 
                     oz_swing_percent + meatball_swing_percent,
   data = rol_stats)
 tidy(m4)
+summary(m4)$adj.r.squared
 ```
 
 ```{r, warning = FALSE, message=FALSE}
@@ -298,6 +339,43 @@ m4_2 <- ggplot(m4_aug, aes(sample = .resid)) +
 
 grid.arrange(m4_1, m4_2, ncol = 2)
 ```
+
+#### 3.2:
+
+```{r, eval=FALSE}
+# Predict Nationals stats
+pred_obp <- predict(m3, nationals_stats)
+pred_slg <- predict(m4, nationals_stats)
+
+# Add predicted stats to df
+nationals_stats <- nationals_stats |>
+  mutate(Predicted_OBP = pred_obp,
+         Predicted_SLG = pred_slg)
+
+# Create optimal lineup using one of each position
+nationals_pred_stats <- nationals_stats |>
+  group_by(Position) |>
+  slice(which.max(Predicted_OBP)) 
+
+# Group important columns for output
+nationals_pred_stats <- nationals_pred_stats[ ,c("last_name","first_name","Position",
+                                             "Predicted_OBP", "Predicted_SLG")]
+
+# Manually change batting order based on Sabermetrics
+last_name_order <- c("Soto", "Rendon", "Turner", "Kendrick III", "Suzuki", "Dozier", "Eaton",
+                     "Taylor", "Strasburg", "Stevenson")
+
+nationals_pred_stats <- nationals_pred_stats[match(last_name_order,
+                                                   nationals_pred_stats$last_name),]
+
+# Remove quotation marks around the first name column
+nationals_pred_stats$first_name <- noquote(nationals_pred_stats$first_name)
+
+# Display results
+print(nationals_pred_stats)
+```
+
+\newpage
 
 #### Data Dictionary:
 
@@ -380,18 +458,3 @@ z_swing_percent: The player's swing percentage on pitches inside the zone.
 oz_swing_percent: The player's swing percentage on pitches outside the zone.
 
 meatball_swing_percent: The player's swing percentage on meatball pitches.
-
-
-```{r nats-stats, message=FALSE, warning=FALSE, include = FALSE}
-# Predict
-pred_obp <- predict(m3, nationals_stats)
-pred_slg <- predict(m4, nationals_stats)
-# Add to DF
-nationals_stats <- nationals_stats |>
-  mutate(Predicted_OBP = pred_obp,
-         Predicted_SLG = pred_slg)
-# Display
-nationals_pred_stats <- nationals_stats[ ,c("last_name","first_name","Position",
-                                             "Predicted_OBP", "Predicted_SLG")]
-print(nationals_pred_stats)
-```

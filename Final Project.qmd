@@ -34,13 +34,14 @@ Following the linear regression we ran diagnostics such as making a QQ-Plot and 
 
 ## Packages and Data
 
-```{r libs, message=FALSE, warning=FALSE}
+```{r libs, message=FALSE, warning=FALSE, include = FALSE}
 library(tidyverse) 
 library(tidymodels) 
 library(glmnet) 
 library(caret) 
 library(MASS) 
 library(lme4)
+library(gridExtra)
 stats <- read.csv("data/stats.csv")
 stats <- replace(stats, stats =="", NA)
 stats <- stats %>%
@@ -71,7 +72,7 @@ m_best <- glmnet(x, y, alpha = 1, lambda = best_lambda)
 m_best$beta
 ```
 
-```{r statcast-obp, warning = FALSE, message=FALSE}
+```{r statcast-obp, warning = FALSE, message=FALSE, out.width="50%"}
 # obp percentage prediction
 m3 <- lm(on_base_percent ~ launch_angle_avg + sweet_spot_percent + 
                     barrel + solidcontact_percent + flareburner_percent + 
@@ -79,19 +80,27 @@ m3 <- lm(on_base_percent ~ launch_angle_avg + sweet_spot_percent +
                     oz_swing_percent + meatball_swing_percent,
   data = rol_stats)
 tidy(m3)
+
+```
+
+```{r statcast-obp-graphs, warning = FALSE, message=FALSE}
+# OBP Assumptions Graphs
 m3_aug <- augment(m3)
-m3_aug |>
-ggplot(aes(x = .fitted, y = .resid)) + 
+
+LA_1 <- ggplot(m3_aug, aes(x = .fitted, y = .resid)) + 
   geom_point() + 
   geom_hline(yintercept = 0, color = "darkred") + 
   labs(x = "Fitted Values", 
        y = "Residual") + 
   theme_bw()
-ggplot(m3_aug, aes(sample = .resid)) +
+
+LA_2 <- ggplot(m3_aug, aes(sample = .resid)) +
   stat_qq() + 
   stat_qq_line() + 
   theme_bw() +
   labs(x = "Theoretical quantiles", y = "Sample quantiles")
+
+grid.arrange(LA_1, LA_2, ncol = 2)
 ```
 
 ```{r slg-lasso, warning = FALSE, message=FALSE}

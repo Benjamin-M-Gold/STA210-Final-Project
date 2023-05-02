@@ -4,7 +4,6 @@ format: pdf
 editor: visual
 author: "Benji Gold and Sam Alkalay"
 ---
-
 ```{r, message=FALSE, warning=FALSE, include=FALSE}
 # Packages and data
 library(tidyverse) 
@@ -35,36 +34,46 @@ m4 <- lm(slg_percent ~ launch_angle_avg + sweet_spot_percent +
                     oz_swing_percent + meatball_swing_percent,
   data = rol_stats)
 ```
-
 ## Introduction:
 
 Baseball, America's pastime, has a storied tradition that dates back well over 100 years. Since the 1850's, some form of statistic measuring how good a player is has been tracked. This began through the use of the box score, which tracked basic statistics, such as hits, runs, and errors, from which a player's batting average can be constructed. Over one hundred years later, a pioneering statistician by the name of Bill James introduced new statistical concepts, such as on-base percentage and runs created, in his annual Baseball Abstract (Lee, 2018). As technology improved, the statistics being tracked became more sophisticated. 
 
-In 2015 analytics in baseball took a giant leap. With the introduction of Statcast, teams were able to track novel metrics, such as a batted ball's exit velocity (the speed of the baseball as it comes off the bat, immediately after a batter makes contact) and launch angle (the angle at which a baseball is hit), as they provide more accurate and nuanced insights into a player's offensive abilities ("Statcast Search").  Below is a histogram showing the distribution of exit velocity in the league.
+In 2015 analytics in baseball took a giant leap. With the introduction of Statcast, teams were able to track novel metrics, such as a batted ball's exit velocity (the speed of the baseball as it comes off the bat, immediately after a batter makes contact) and launch angle (the angle at which a baseball is hit), as they provide more accurate and nuanced insights into a player's offensive abilities ("Statcast Search").  Below are histograms showing the distribution of these two statistics in the league.
 
-```{r eda-predictor, echo=FALSE, out.height=350, out.width=350}
+```{r eda-predictor, echo=FALSE, out.height=250, out.width=500}
 # Histogram of relationships
 exit_velo_hist <- ggplot(data = stats, aes(x = exit_velocity_avg)) +
   geom_histogram(fill = "lightblue", color = "white", bins = 20) +
   geom_vline(xintercept = mean(stats$exit_velocity), color = "red", linetype = "dashed") +
   theme_bw() +
   labs(x = "Exit Velocity", y = "Number of Players", 
-       title = "Roughly nomral histogram of exit velocities") +
+       title = "Exit Velocity Histogram",
+       subtitle = "Roughly normal distribution") +
   theme(panel.grid.major = element_blank(),
         panel.grid.minor = element_blank())
 
-grid.arrange(exit_velo_hist, ncol = 1)
+launch_angle_hist <- ggplot(data = stats, aes(x = launch_angle_avg)) +
+  geom_histogram(fill = "lightblue", color = "white", bins = 20) +
+  geom_vline(xintercept = mean(stats$launch_angle_avg), color = "red", linetype = "dashed") +
+  theme_bw() +
+  labs(x = "Launch Angle", y = "Number of Players", 
+       title = "Launch Angle Histogram",
+       subtitle = "Roughly normal distribution") +
+  theme(panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank())
+
+grid.arrange(exit_velo_hist, launch_angle_hist, ncol = 2)
 ```
 
-As a result of these new metrics, teams across the league have incorporated these new metrics into their scouting and player development processes to gain a competitive edge in the game. Nevertheless, a question remains as to whether these metrics are truly effective in accurately predicting a player's potential. This research project intends to explore that idea through the use of a linear regression model to predict a player's on-base percentage, the percentage of at bats in which a player reaches a base, and slugging percentage, the total number of bases a player records per at-bat. To put these numbers into perspective, the average on-base and slugging percentages for a player in the dataset are 0.288 and 0.377 respectively (Appendix: 1.1). Histograms of these variables can be seen below. Each of these response variables appear roughly normally distributed, but with enough variance that it will be interesting to attempt to predict them. There also don't seem to be any huge outliers, as judged by large holes between bins in the histogram, meaning most of the data collected should be able to be used without concern in our analysis. The research question of interest is:
+As a result of these new metrics, teams across the league have changed their scouting and player development processes to gain a competitive edge in the game. Nevertheless, a question remains as to whether these metrics are truly effective in accurately predicting a player's potential. This research project intends to explore that idea through the use of a linear regression model to predict a player's on-base percentage, the percentage of at bats in which a player reaches a base, and slugging percentage, the total number of bases a player records per at-bat. To put these numbers into perspective, the average on-base and slugging percentages for a player in the dataset are 0.288 and 0.377 respectively (Appendix: 1.1). Histograms of these variables can be seen below. Each of these response variables appear roughly normally distributed, but with enough variance that it will be interesting to attempt to predict them. There also does not seem to be any huge outliers, as judged by large holes between bins in the histogram, meaning most of the data collected should be able to be used without concern in our analysis.
 
-```{r eda-response, echo=FALSE, out.height=400, out.width=400}
+```{r eda-response, echo=FALSE, out.height=300, out.width=600}
 # Histogram of relationships
 slg_hist <- ggplot(data = stats, aes(x = slg_percent)) +
   geom_histogram(fill = "lightblue", color = "white", bins = 20) +
   geom_vline(xintercept = mean(stats$slg_percent), color = "red", linetype = "dashed") +
   theme_bw() +
-  labs(x = "Exit Velocity", y = "Number of Players", 
+  labs(x = "Slugging Percentage", y = "Number of Players", 
        title = "Exploratory Data Analysis") +
   theme(panel.grid.major = element_blank(),
         panel.grid.minor = element_blank())
@@ -80,7 +89,7 @@ obp_hist <- ggplot(data = stats, aes(x = on_base_percent)) +
 
 grid.arrange(slg_hist, obp_hist, ncol = 2)
 ```
-
+The research question of interest is:
 
 How do advanced offensive performance metrics relate to a baseball player's on-base percentage and slugging percentage, and which metrics are the strongest predictors of these statistics?
 
@@ -88,26 +97,26 @@ To gather data for our study, we sourced a dataset from baseballsavant.com that 
 
 ## Methodology:
 
-Our original research question involved predicting whether or not a player was an all-star in 2019 based on their full season statistics for that season. Using our domain knowledge we realized that whether or not a palyer is designated an all-star is not simply a measure of skill (which typical baseball statistics are designed to measure), but of popularity. This is true because of how all-stars are determined. The starters for the all-star team in each league are determined by fan vote, so a bad player who is popular with fans might still be selected an all-star. Because of this, our first decision was to create two new categorical variables, one for if a player hit more than 40 Home Runs (HR) in 2019 and one for if a player had a batting average (AVG) higher than 0.300 (Appendix: 2.1). These variables are meant to measure fame based off a semi-arbitrary criteria based on how fans view baseball. Our domain knowledge tells us that a player is generally considered elite by fans if they hit more than 40 HRs or have an AVG higher than 0.300. Home runs and batting average are sort of heuristic statistics that fans use to measure player quality and thus these effects should be included in our model.
+Our original research question involved predicting whether or not a player was an all-star in 2019 based on their full season statistics for that season. Using our domain knowledge we realized that whether or not a player is designated an all-star is not simply a measure of skill (which typical baseball statistics are designed to measure), but also of popularity. This is true because of how all-stars are determined. The starters for the all-star team in each league are determined by fan vote, so a bad player who is popular with fans might still be selected as an all-star. Because of this, we first decided to create two new categorical variables, one for if a player hit more than 40 Home Runs (HR) in 2019 and one for if a player had a batting average (AVG) higher than 0.300 (Appendix: 2.1). These variables are meant to measure fame based off a semi-arbitrary criteria on how fans view baseball. Our domain knowledge tells us that a player is generally considered elite by fans if they hit more than 40 HRs or have an AVG higher than 0.300. Home runs and batting average are sort of heuristic statistics that fans use to measure player quality and thus these effects should be included in our model.
 
-Part of our research question was comparing models using advanced statistics to those that use more typical baseball statistics. We divided the stats in our data set into three categories: General information, typical stats, and advanced stats (Appendix: Data Dictionary). The general information is basic player background statistics like age, and position. The typical stats were statistics we could find on the basic page of a player's baseballreference page. The advanced stats were things we could only find on baseballsavant. All analyses discussed were performed twice, once on the general variables combined with the typical statistics and once with the general variables combined with the advanced stats.
+Part of our research question was comparing models using advanced statistics to those that use more typical baseball statistics. We divided the stats in our data set into three categories: General information, typical stats, and advanced stats (Appendix: Data Dictionary). The general information is basic player background statistics like age, season, and position. The typical stats were statistics we could find on the basic page of a player's baseballreference page, while the advanced stats were numbers we could only find on baseballsavant. All analyses discussed were performed twice, once on the general variables combined with the typical statistics and once with the general variables combined with the advanced stats.
 
-Our response variable is a categorical variable, with a 1 if a player was an all-star and a 0 if the player-was not an all-star. Thus, we decided to perform a logistic regression on our data. Prior to running our logistic regression we performed a lasso on both subsets of the data (Appendix: 2.2). We choose to use a lasso because we wanted to optimize the predictive power of the model. We also worried about correlation among our predictors, which would make step-wise selection methods work poorly.
+Our response variable in this model was a categorical variable, with a 1 corresponding to if a player was an all-star and a 0 corresponding if a player-was not an all-star. Thus, we decided to perform a logistic regression on our data. Prior to running our logistic regression we performed a lasso on both subsets of the data (Appendix: 2.2). We choose to use a lasso because we wanted to optimize the predictive power of the model. We also worried about correlation among our predictors, which would make step-wise selection methods work poorly.
 
 We ran the lasso on both sets of models and then ran logistic regressions, measuring our success by the sensitivity of the model with a 32% probability threshold for categorization (Appendix: 2.3). The typical statistics model had a sensitivity of 55.5% and the advanced stats model had a sensitivity of about 44.5%. Neither of these results were very encouraging. Because of this, we went back and thought about our model. We realized that many of our predictors were highly correlated, which would make the lasso work poorly for variable selection (which is obvious if you look at the lasso in our appendix and see that variables that our domain knowledge said were likely to be relevant such as AVG were selected out of the model). We also think that we had a problem with scarce data. Only 54 players in our data set were all-stars in 2019, which makes it difficult for our model to differentiate between all-stars and non-all stars, even with our low probability threshold for categorization as an all-star because it didn't have a large sample of all-stars to train on. Due to the low sensitivity and methodological problems of these models we decided to try something new instead.
 
-After reevaluating our research question, we decided to instead attempt to predict slugging percentage and on-base percentage from the advanced statistics (we couldn't predict using the typical statistics because these response variables are highly correlated, and in fact directly calculated from the typical statistics we measured). This is a valuable project because it can help us compare the outcomes we get from measuring performance through advanced metrics to the ones we get using typical statistics. We also used this to evaluate tenancies of where a player should be placed in a batting order, comparing the popular knowledge about batting order determinations, which are based on the typical box-score statistics, to what advanced Statcast knowledge says you should do.
+After reevaluating our research question, we decided to instead attempt to predict slugging percentage and on-base percentage from the advanced statistics (we couldn't predict using the typical statistics because these response variables are highly correlated, and in fact directly calculated from the typical statistics we measured). This is a valuable project because it can help us compare the outcomes we get from measuring performance through advanced metrics to the ones we get using typical statistics. We also used this to reevaluate typical tenancies of where a player should be placed in a batting order, which is based on the typical box-score statistics.
 
-Our methods for this were very similar to our methods for the all-star regressions, except we started by removing players who were on the Washington Nationals, so we could use them as a test data set for our model (Appendix: 2.4). We then used a lasso for the same reasons described above (fears of correlation among the predictors as well as our ability to optimize for predictive performance). We then ran a linear regression to predict slugging percentage and on-base percentage separately. we ran lassos to separately select variables for these two different regressions. Batting average and slugging percentage are continuous variables thus making linear regression work quiet well. We chose not to include any interactions because each of the statistics are calculated to represent different aspects of player performance and are thus not meant to be taken together. Our final models were these linear models trained on the advanced statistics, as defined in the data dictionary.
+Our methods for this were very similar to our methods for the all-star regressions, except we started by removing players who were on the Washington Nationals, so we could use them as a test data set for our model (Appendix: 2.4). We then used a lasso for the same reasons described above (fears of correlation among the predictors as well as our ability to optimize for predictive performance). We then ran a linear regression to predict slugging percentage and on-base percentage separately. we ran lassos to separately select variables for these two different regressions. Batting average and slugging percentage are continuous variables thus making linear regression work quiet well. We chose not to include any interactions because each of the statistics are calculated to represent different aspects of player performance and are thus not meant to be taken together. Our final models were linear models trained on the advanced statistics, as defined in the data dictionary.
 
-Following the linear regression we ran diagnostics such as making a QQ-Plot and Residual plot (which can be seen in the code chunk labelled statcast-obp,in the results section). Neither regression shows a clear pattern in the residual plots, but here is some worry about constant variance in the On-base percentage regression around the fitted value of 0.2. In general, however, we judged that the assumptions of linearity and constant variance seem to be valid for both plots. The QQ-plots are meant to test normality. The on-base percentage QQ-Plot deviates from normality, but this deviation is largely in the tails, thus we think this assumption is satisfied. The QQ-plot doesn't' deviate much for the slugging percentage regression and thus we think normality is fine for the slugging percentage regression. Independence is also satisfied because we are looking at the player level. If we were looking at typical statistics their might be some violation of independence based on the team the player played for but advanced statistics are designed such that they are independent. This is why exit-velocity is used rather than say, hit distance. Exit velocity cannot be altered by environmental conditions (and thus what team a player plays for), but distance a ball travels is altered by the elevation of a stadium. The use of data from a single season also helps us ensure data are independent with respect to conditions about the state of the sport. In the time since 2019 multiple rules have been altered and some of basic skills and strategies have changed, but we do not have to worry about these potential violations of independence because all of our data comes from a single seasson. These linear regressions satisfy our assumptions and can thus be used for analysis.
+Following the linear regression we ran diagnostics our models by making QQ-Plots and Residual plots (which is shown in the results section). Neither regression shows a clear pattern in the residual plots, but there is some worry about constant variance in the On-base percentage regression around the fitted value of 0.2. In general, however, we judged that the assumptions of linearity and constant variance seem to be valid for both models. The on-base percentage QQ-Plot deviates from normality, but this deviation is largely in the tails, thus we think this assumption is satisfied for a reasonable range of values. The slugging percentage QQ-plot does not deviate much from normality, and thus we think normality is fine for this model as well. Independence is also satisfied because we are looking at the player level. If we were looking at typical statistics there might be some violation of independence based on the team the player plays for, but advanced statistics are designed such that they are independent. This is why exit-velocity is used rather than something like hit distance. Exit velocity cannot be altered by environmental conditions (and thus what team a player plays for), but distance a ball travels is altered by the elevation of a stadium. The use of data from a single season also helps us ensure data are independent with respect to conditions about the state of the sport. In the time since 2019 multiple rules have been altered and some of basic skills and strategies have changed, but we do not have to worry about these potential violations of independence because all of our data comes from a single season. These linear regressions satisfy our assumptions and can thus be used for analysis.
 
 ## Results:
 
-These models were trained on data from the 2019 season for each team, aside from the Washington Nationals, which were used as a test set. We decided it was most appropriate to use a whole team as a test set because it provided a variety of positions and was most useful in terms of comparing expected lineups (lineups that would be expected to generate the most runs) to actual lineups. The LASSO regression (included below) for the on base percentage model had a best lambda of approximately 0.000733 using 10-fold cross validation, and the variables included were launch_angle_avg, sweet_spot_percent, barrel, solidcontact_percent, flareburner_percent, hard_hit_percent, z_swing_percent, oz_swing_percent, and meatball_swing_percent.
+These models were trained on data from the 2019 season for each team, aside from the Washington Nationals, which were used as a test set. We decided it was most appropriate to use a whole team as a test set because it provided a variety of positions and was most useful in terms of comparing expected lineups (lineups that are expected to generate the most runs) to actual lineups. The lasso, included below, for the on base percentage model had a best lambda of approximately 0.000733 with 10-fold cross validation, and the variables included were launch_angle_avg, sweet_spot_percent, barrel, solidcontact_percent, flareburner_percent, hard_hit_percent, z_swing_percent, oz_swing_percent, and meatball_swing_percent.
 
 ```{r lasso-OBP, warning = FALSE, message=FALSE, echo=FALSE}
-# Obp LASSO for rest of league
+# Obp lasso for rest of league
 set.seed(0)
 y <- rol_stats$on_base_percent
 x <- model.matrix(on_base_percent ~ launch_angle_avg + sweet_spot_percent + 
@@ -121,7 +130,7 @@ m_best$beta
 cat("Best Lambda:", best_lambda)
 ```
 
-After using these variables in the linear regression (included below), we were able to conclude that the assumptions for a linear regression were satisfied, as discussed in the methodolgy. Moreover, 69.94% of the variation in OBP was explained by the predictors in the model (adjusted R-squared).
+After using these variables in the linear regression (included below), we were able to conclude that the assumptions for a linear regression were satisfied, as discussed in the methodolgy. Moreover, 70.52% of the variation in OBP was explained by the predictors in the model (adjusted R-squared) (Appendix 3.1).
 
 ```{r statcast-obp, warning = FALSE, message=FALSE, echo=FALSE}
 # Rol obp linear model
@@ -130,7 +139,7 @@ m3 <- lm(on_base_percent ~ launch_angle_avg + sweet_spot_percent +
                     hard_hit_percent + z_swing_percent + 
                     oz_swing_percent + meatball_swing_percent,
   data = rol_stats)
-summary(m3)
+tidy(m3)
 ```
 
 ```{r statcast-obp-graphs, warning = FALSE, message=FALSE, echo=FALSE}
@@ -146,7 +155,7 @@ m3_1 <- ggplot(m3_aug, aes(x = .fitted, y = .resid)) +
 
 m3_2 <- ggplot(m3_aug, aes(sample = .resid)) +
   stat_qq() + 
-  stat_qq_line() + 
+  stat_qq_line(color = "darkred") + 
   theme_bw() +
   labs(x = "Theoretical quantiles", y = "Sample quantiles", 
        title = "QQ-Plot")
@@ -154,13 +163,13 @@ m3_2 <- ggplot(m3_aug, aes(sample = .resid)) +
 grid.arrange(m3_1, m3_2, ncol = 2)
 ```
 
-Among the significant variables in this linear regression, one of the most notable positive predictors was flareburner_percent. Holding all other predictors constant, for each 1% increase in flareburner_percent, expected on base percentage increases by approximately 0.380%. On the other hand, one of the most notable negative predictors was oz_swing_percent. Holding all other predictors constant, for each 1% increase in flareburner_percent, expected on base percentage decreases by approximately 0.302%. These results both make sense in the context of the game because being able to hit a variety of pitches would make a batter better, while swinging at bad pitches would make a batter worse.
+Among the significant variables in this linear regression, one of the most notable positive predictors was flareburner_percent. Holding all other predictors constant, for each 1% increase in flareburner_percent, expected on-base percentage increases by approximately 0.380%. On the other hand, one of the most notable negative predictors was oz_swing_percent. Holding all other predictors constant, for each 1% increase in oz_swing_percent, expected on-base percentage decreases by approximately 0.302%. These results both make sense in the context of the game because being able to hit a variety of pitches would make a batter better, while swinging at bad pitches would make a batter worse.
 
-Moving on to the LASSO regression for slugging percentage, we observed a best lambda of approximately 0.00165, and the variables included were launch_angle_avg, sweet_spot_percent, barrel, solidcontact_percent, flareburner_percent, hard_hit_percent, avg_hyper_speed, z_swing_percent, oz_swing_percent, and meatball_swing_percent. Like the other model, all assumptions for a linear regression were met, and 72.87% of the variation was explained by the predictors in the model. The code chunks and outputs are not visualized here because they are the same as the above code chunks, just with a LASSO regression, linear model, and assumption graphs for slugging percentage instead. All of the code and associated outputs for these models can be found in appendix section 3.1.
+Moving on to the lasso for slugging percentage, we observed a best lambda of approximately 0.00165, and the variables included were launch_angle_avg, sweet_spot_percent, barrel, solidcontact_percent, flareburner_percent, hard_hit_percent, avg_hyper_speed, z_swing_percent, oz_swing_percent, and meatball_swing_percent. Like the other model, all assumptions for a linear regression were met, and 72.87% of the variation was explained by the predictors in the model. The outputs are not visualized here because they are similar to the outputs above, just with a lasso, linear model, and assumption graphs for slugging percentage instead. All of the associated outputs for this model can be found in appendix section 3.2.
 
 Among the significant variables in slugging percentage model, the most notable predictors were sweet_spot_percent and barrel. Holding all other predictors constant, for each 1% increase in each of these predictors, expected slugging percentage increases by approximately 0.386% and 0.358% respectively. oz_swing_percent still had a negative correlation in this model, but its impact was far less. These results make sense as slugging percentage is based on how good a player's hit is, and both of these predictors are strongly associated with doubles, triples, and home runs, while OBP is only based on whether a player reaches a base.
 
-After determining that the models fit the data well, we utilized them to forecast the on-base and slugging percentages for all Washington Nationals players. Using these projections, we employed a Sabermetrics batting order approach to create an optimal batting order for the team (“How Sabermetrics Influence Baseball"). The output of the batting order, including a pinch hitter at 10, is below, and the code used is included in the appendix under section 3.2. 
+After determining that the models fit the data well, we utilized them to forecast the on-base and slugging percentages for all Washington Nationals players. Using these projections, we employed a Sabermetrics batting order approach to create an optimal batting order for the team (“How Sabermetrics Influence Baseball"). The output of the batting order (including a pinch hitter at 10), is below (Appendix: 3.3).
 
 ```{r nats-stats, message=FALSE, warning=FALSE, echo=FALSE}
 # Predict Nationals stats
@@ -201,7 +210,7 @@ In this study, we aimed to develop predictive models for on base percentage and 
 
 Our findings suggest that advanced statistics can be used to predict player performance and improve team strategies. For example, our models highlighted the importance of flareburner_percent and oz_swing_percent in predicting on base percentage. These findings suggest that players who can hit a variety of pitches are more likely to perform better, while those who swing at bad pitches are less likely to reach base. These insights can be useful for teams when selecting players or developing strategies to optimize their lineups. Moreover, our models revealed that sweet_spot_percent and barrel were the most notable predictors of slugging percentage. These findings suggest that players who can consistently hit the ball at certain angles and on a specific part of their bat are more likely to generate more extra base hits. Therefore, teams can use this information to identify players who are more likely to produce high slugging percentages, which is a key factor in offensive success in baseball.
 
-Despite the promising results of our study, there are some limitations to our analysis. First, our data only covers the 2019 season, and it is possible that our models may not be generalizable to other seasons or contexts. We'd have to add additional variables to our model to help ensure independence among statstics from different seasons, but this is perhaps a direction for future work. Furthermore, this is a generalized model that does not take into account unique player and stadium advantages. For example, certain players hit far better against right handed pitchers than left handed pitchers, and a team's optimal lineup should change based on the type of pitcher they are facing. Also, stadiums at higher altitudes, like the one in Colorado, favor more powerful hitters because its altitude is higher, which makes the baseball go approximately 10% further (Welling). This would also warrant a game specific change in the lineup.
+Despite the promising results of our study, there are some limitations to our analysis. First, our data only covers the 2019 season, and it is possible that our models may not be generalizable to other seasons or contexts. We would have to add additional variables to our model to help ensure independence among statstics from different seasons, but this is perhaps a direction for future work. Furthermore, this is a generalized model that does not take into account unique player and stadium advantages. For example, certain players hit far better against right handed pitchers than left handed pitchers, and a team's optimal lineup should change based on the type of pitcher they are facing. Also, stadiums at higher altitudes, like Coors Stadium in Colorado, favor more powerful hitters because its altitude is higher, which makes the baseball go approximately 10% further (Welling). This would also warrant a game specific change in the lineup.
 
 However, the biggest limitation of our model is that it only predicts on base and slugging percentage for players who are already in the major leagues. While this is helpful for decisions for future seasons, the model is not able to shine any light on how a player may perform before they actually play in the major leagues. Fortunately, major league baseball franchises have a well developed farm system where players spend years in the minor leagues. This is the highest level of baseball, aside from the major league, in the United States, and they track all of the same stats that the MLB does. Therefore, a natural progression for future work would be to try and predict a player's on base and slugging percentage based on their advanced statistics in the minor leagues. This would give teams a better gauge on how players would perform in the major leagues, rather than how players would perform in future seasons after they have already made it to the majors. With this type of model, teams would have a better idea of how to strategically bring up players and put the team that gives them the best chance of winning on the field.
 \newpage
@@ -262,7 +271,7 @@ stats <- stats |>
 #### 2.2:
 
 ```{r lasso-basic,warning=FALSE, message=FALSE}
-# LASSO Variable Selection Basic Stats
+# lasso Variable Selection Basic Stats
 y <- stats$All.Star
 x <- model.matrix(All.Star ~ player_age + b_ab + b_total_pa + b_total_hits + 
                     b_home_run + AVG300 * batting_avg +b_double + b_triple + 
@@ -276,7 +285,7 @@ m_best$beta
 ```
 
 ```{r lasso-adv,warning=FALSE, message=FALSE}
-# LASSO Variable Selection Advanced Stats
+# lasso Variable Selection Advanced Stats
 y <- stats$All.Star
 x <- model.matrix(All.Star ~ player_age + launch_angle_avg + sweet_spot_percent + 
                     barrel + solidcontact_percent + flareburner_percent + 
@@ -336,6 +345,14 @@ rol_stats <- stats |>
 
 #### 3.1:
 
+```{r}
+# OBP adjusted r-squared
+summary(m3)$r.squared
+```
+
+
+#### 3.2:
+
 ```{r, warning = FALSE, message=FALSE}
 # slugging percentage lasso
 set.seed(0)
@@ -382,7 +399,7 @@ m4_2 <- ggplot(m4_aug, aes(sample = .resid)) +
 grid.arrange(m4_1, m4_2, ncol = 2)
 ```
 
-#### 3.2:
+#### 3.3:
 
 ```{r, eval=FALSE}
 # Predict Nationals stats

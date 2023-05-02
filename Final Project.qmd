@@ -38,7 +38,32 @@ m4 <- lm(slg_percent ~ launch_angle_avg + sweet_spot_percent +
 
 ## Introduction:
 
-Baseball, America's pastime, has a storied tradition that dates back well over 100 years. Since the 1850's, some form of statistic measuring how good a player is has been tracked. This began through the use of the box score, which tracked basic statistics, such as hits, runs, and errors, from which a player's batting average can be constructed. Over one hundred years later, a pioneering statistician by the name of Bill James introduced new statistical concepts, such as on-base percentage and runs created, in his annual Baseball Abstract (Lee, 2018). As technology improved, the statistics being tracked became more sophisticated. In 2015 analytics in baseball took a giant leap. With the introduction of Statcast, teams were able to track novel metrics, such as a batted ball's exit velocity (the speed of the baseball as it comes off the bat, immediately after a batter makes contact) and barrel percentage (the percentage of baseballs hit off of the player's barrel), as they provide more accurate and nuanced insights into a player's offensive abilities ("Statcast Search"). As a result, teams across the league have incorporated these new metrics into their scouting and player development processes to gain a competitive edge in the game. Nevertheless, a question remains as to whether these metrics are truly effective in accurately predicting a player's potential. This research project intends to explore that idea through the use of a linear regression model to predict a player's on-base percentage, the percentage of at bats in which a player reaches a base, and slugging percentage, the total number of bases a player records per at-bat. To put these numbers into perspective, the average on-base and slugging percentages for a player in the dataset are 0.288 and 0.377 respectively (Appendix: 1.1). The research question of interest is:
+Baseball, America's pastime, has a storied tradition that dates back well over 100 years. Since the 1850's, some form of statistic measuring how good a player is has been tracked. This began through the use of the box score, which tracked basic statistics, such as hits, runs, and errors, from which a player's batting average can be constructed. Over one hundred years later, a pioneering statistician by the name of Bill James introduced new statistical concepts, such as on-base percentage and runs created, in his annual Baseball Abstract (Lee, 2018). As technology improved, the statistics being tracked became more sophisticated. 
+
+In 2015 analytics in baseball took a giant leap. With the introduction of Statcast, teams were able to track novel metrics, such as a batted ball's exit velocity (the speed of the baseball as it comes off the bat, immediately after a batter makes contact) and launch angle (the angle at which a baseball is hit), as they provide more accurate and nuanced insights into a player's offensive abilities ("Statcast Search").  Below are histograms depicting the distribution of both statistics in the MLB.
+
+```{r, echo=FALSE}
+# Histogram of relationships
+exit_velo_hist <- ggplot(data = stats, aes(x = exit_velocity_avg)) +
+  geom_histogram(fill = "lightblue", color = "white", bins = 20) +
+  geom_vline(xintercept = mean(stats$exit_velocity), color = "red", linetype = "dashed") +
+  theme_bw() +
+  labs(x = "Exit Velocity", y = "Number of Players") +
+  theme(panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank())
+
+launch_angle_hist <- ggplot(data = stats, aes(x = launch_angle_avg)) +
+  geom_histogram(fill = "lightblue", color = "white", bins = 20) +
+  geom_vline(xintercept = mean(stats$launch_angle_avg), color = "red", linetype = "dashed") +
+  theme_bw() +
+  labs(x = "Average Launch Angle", y = "Number of Players") +
+  theme(panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank())
+
+grid.arrange(exit_velo_hist, launch_angle_hist, ncol = 2)
+```
+
+As a result of these new metrics, teams across the league have incorporated these new metrics into their scouting and player development processes to gain a competitive edge in the game. Nevertheless, a question remains as to whether these metrics are truly effective in accurately predicting a player's potential. This research project intends to explore that idea through the use of a linear regression model to predict a player's on-base percentage, the percentage of at bats in which a player reaches a base, and slugging percentage, the total number of bases a player records per at-bat. To put these numbers into perspective, the average on-base and slugging percentages for a player in the dataset are 0.288 and 0.377 respectively (Appendix: 1.1). The research question of interest is:
 
 How do advanced offensive performance metrics relate to a baseball player's on-base percentage and slugging percentage, and which metrics are the strongest predictors of these statistics?
 
@@ -64,7 +89,7 @@ Following the linear regression we ran diagnostics such as making a QQ-Plot and 
 
 These models were trained on data from the 2019 season for each team, aside from the Washington Nationals, which were used as a test set. We decided it was most appropriate to use a whole team as a test set because it provided a variety of positions and was most useful in terms of comparing expected lineups (lineups that would be expected to generate the most runs) to actual lineups. The LASSO regression (included below) for the on base percentage model had a best lambda of approximately 0.000733 using 10-fold cross validation, and the variables included were launch_angle_avg, sweet_spot_percent, barrel, solidcontact_percent, flareburner_percent, hard_hit_percent, z_swing_percent, oz_swing_percent, and meatball_swing_percent.
 
-```{r lasso-OBP, warning = FALSE, message=FALSE}
+```{r lasso-OBP, warning = FALSE, message=FALSE, echo=FALSE}
 # Obp LASSO for rest of league
 set.seed(0)
 y <- rol_stats$on_base_percent
@@ -74,25 +99,24 @@ x <- model.matrix(on_base_percent ~ launch_angle_avg + sweet_spot_percent +
                     oz_swing_percent + meatball_swing_percent, data = rol_stats)
 m_lasso_cv <- cv.glmnet(x, y, alpha = 1)
 best_lambda <- m_lasso_cv$lambda.min
-best_lambda
 m_best <- glmnet(x, y, alpha = 1, lambda = best_lambda)
 m_best$beta
+cat("Best Lambda:", best_lambda)
 ```
 
 After using these variables in the linear regression (included below), we were able to conclude that the assumptions for a linear regression were satisfied because in the residual plot we see mostly symmetrically distributed and evenly spaced observations, satisfying the criteria for linearity and constant variance. Furthermore, there is a slight correlation between the predictors and no clear deviation patterns, aside from the ends, in the Q-Q plot, satisfying the assumption for independence and normality. Moreover, 69.94% of the variation in OBP was explained by the predictors in the model (adjusted R-squared).
 
-```{r statcast-obp, warning = FALSE, message=FALSE}
+```{r statcast-obp, warning = FALSE, message=FALSE, echo=FALSE}
 # Rol obp linear model
 m3 <- lm(on_base_percent ~ launch_angle_avg + sweet_spot_percent + 
                     barrel + solidcontact_percent + flareburner_percent + 
                     hard_hit_percent + z_swing_percent + 
                     oz_swing_percent + meatball_swing_percent,
   data = rol_stats)
-tidy(m3)
-summary(m3)$adj.r.squared
+summary(m3)
 ```
 
-```{r statcast-obp-graphs, warning = FALSE, message=FALSE}
+```{r statcast-obp-graphs, warning = FALSE, message=FALSE, echo=FALSE}
 # OBP Assumptions Graphs
 m3_aug <- augment(m3)
 

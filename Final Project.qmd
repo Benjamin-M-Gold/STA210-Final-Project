@@ -40,30 +40,47 @@ m4 <- lm(slg_percent ~ launch_angle_avg + sweet_spot_percent +
 
 Baseball, America's pastime, has a storied tradition that dates back well over 100 years. Since the 1850's, some form of statistic measuring how good a player is has been tracked. This began through the use of the box score, which tracked basic statistics, such as hits, runs, and errors, from which a player's batting average can be constructed. Over one hundred years later, a pioneering statistician by the name of Bill James introduced new statistical concepts, such as on-base percentage and runs created, in his annual Baseball Abstract (Lee, 2018). As technology improved, the statistics being tracked became more sophisticated. 
 
-In 2015 analytics in baseball took a giant leap. With the introduction of Statcast, teams were able to track novel metrics, such as a batted ball's exit velocity (the speed of the baseball as it comes off the bat, immediately after a batter makes contact) and launch angle (the angle at which a baseball is hit), as they provide more accurate and nuanced insights into a player's offensive abilities ("Statcast Search").  Below are histograms depicting the distribution of both statistics in the MLB.
+In 2015 analytics in baseball took a giant leap. With the introduction of Statcast, teams were able to track novel metrics, such as a batted ball's exit velocity (the speed of the baseball as it comes off the bat, immediately after a batter makes contact) and launch angle (the angle at which a baseball is hit), as they provide more accurate and nuanced insights into a player's offensive abilities ("Statcast Search").  Below is a histogram showing the distribution of exit velocity in the league.
 
-```{r, echo=FALSE}
+```{r eda-predictor, echo=FALSE, out.height=350, out.width=350}
 # Histogram of relationships
 exit_velo_hist <- ggplot(data = stats, aes(x = exit_velocity_avg)) +
   geom_histogram(fill = "lightblue", color = "white", bins = 20) +
   geom_vline(xintercept = mean(stats$exit_velocity), color = "red", linetype = "dashed") +
   theme_bw() +
-  labs(x = "Exit Velocity", y = "Number of Players") +
+  labs(x = "Exit Velocity", y = "Number of Players", 
+       title = "Roughly nomral histogram of exit velocities") +
   theme(panel.grid.major = element_blank(),
         panel.grid.minor = element_blank())
 
-launch_angle_hist <- ggplot(data = stats, aes(x = launch_angle_avg)) +
-  geom_histogram(fill = "lightblue", color = "white", bins = 20) +
-  geom_vline(xintercept = mean(stats$launch_angle_avg), color = "red", linetype = "dashed") +
-  theme_bw() +
-  labs(x = "Average Launch Angle", y = "Number of Players") +
-  theme(panel.grid.major = element_blank(),
-        panel.grid.minor = element_blank())
-
-grid.arrange(exit_velo_hist, launch_angle_hist, ncol = 2)
+grid.arrange(exit_velo_hist, ncol = 1)
 ```
 
-As a result of these new metrics, teams across the league have incorporated these new metrics into their scouting and player development processes to gain a competitive edge in the game. Nevertheless, a question remains as to whether these metrics are truly effective in accurately predicting a player's potential. This research project intends to explore that idea through the use of a linear regression model to predict a player's on-base percentage, the percentage of at bats in which a player reaches a base, and slugging percentage, the total number of bases a player records per at-bat. To put these numbers into perspective, the average on-base and slugging percentages for a player in the dataset are 0.288 and 0.377 respectively (Appendix: 1.1). The research question of interest is:
+As a result of these new metrics, teams across the league have incorporated these new metrics into their scouting and player development processes to gain a competitive edge in the game. Nevertheless, a question remains as to whether these metrics are truly effective in accurately predicting a player's potential. This research project intends to explore that idea through the use of a linear regression model to predict a player's on-base percentage, the percentage of at bats in which a player reaches a base, and slugging percentage, the total number of bases a player records per at-bat. To put these numbers into perspective, the average on-base and slugging percentages for a player in the dataset are 0.288 and 0.377 respectively (Appendix: 1.1). Histograms of these variables can be seen below. Each of these response variables appear roughly normally distributed, but with enough variance that it will be interesting to attempt to predict them. There also don't seem to be any huge outliers, as judged by large holes between bins in the histogram, meaning most of the data collected should be able to be used without concern in our analysis. The research question of interest is:
+
+```{r eda-response, echo=FALSE, out.height=400, out.width=400}
+# Histogram of relationships
+slg_hist <- ggplot(data = stats, aes(x = slg_percent)) +
+  geom_histogram(fill = "lightblue", color = "white", bins = 20) +
+  geom_vline(xintercept = mean(stats$slg_percent), color = "red", linetype = "dashed") +
+  theme_bw() +
+  labs(x = "Exit Velocity", y = "Number of Players", 
+       title = "Exploratory Data Analysis") +
+  theme(panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank())
+
+obp_hist <- ggplot(data = stats, aes(x = on_base_percent)) +
+  geom_histogram(fill = "lightblue", color = "white", bins = 20) +
+  geom_vline(xintercept = mean(stats$on_base_percent), color = "red", linetype = "dashed") +
+  theme_bw() +
+  labs(x = "On-Base Percentage", y = "Number of Players",
+       title = "Exploratory Data Analysis") +
+  theme(panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank())
+
+grid.arrange(slg_hist, obp_hist, ncol = 2)
+```
+
 
 How do advanced offensive performance metrics relate to a baseball player's on-base percentage and slugging percentage, and which metrics are the strongest predictors of these statistics?
 
@@ -83,7 +100,7 @@ After reevaluating our research question, we decided to instead attempt to predi
 
 Our methods for this were very similar to our methods for the all-star regressions, except we started by removing players who were on the Washington Nationals, so we could use them as a test data set for our model (Appendix: 2.4). We then used a lasso for the same reasons described above (fears of correlation among the predictors as well as our ability to optimize for predictive performance). We then ran a linear regression to predict slugging percentage and on-base percentage separately. we ran lassos to separately select variables for these two different regressions. Batting average and slugging percentage are continuous variables thus making linear regression work quiet well. We chose not to include any interactions because each of the statistics are calculated to represent different aspects of player performance and are thus not meant to be taken together. Our final models were these linear models trained on the advanced statistics, as defined in the data dictionary.
 
-Following the linear regression we ran diagnostics such as making a QQ-Plot and Residual plot (which can be seen in the code chunk labelled statcast-obp,in the results section). Neither regression shows a clear pattern in the residual plots, but here is some worry about constant variance in the On-base percentage regression around the fitted value of 0.2. In general, however, we judged that the assumptions of linearity and constant variance seem to be valid for both plots. The QQ-plots are meant to test normality. The on-base percentage QQ-Plot deviates from normality, but this deviation is largely in the tails, thus we think this assumption is satisfied. The QQ-plot doesn't' deviate much for the slugging percentage regression and thus we think normality is fine for the slugging percentage regression. Independence is also satisfied because we are looking at the player level. If we were looking at typical statistics their might be some violation of independence based on the team the player played for but advanced statistics are designed such that they are independent. This is why exit-velocity is used rather than say, hit distance. Exit velocity cannot be altered by environmental conditions (and thus what team a player plays for), but distance a ball travels is altered by the elevation of a stadium. These linear regressions satisfy our assumptions and can thus be used for analysis.
+Following the linear regression we ran diagnostics such as making a QQ-Plot and Residual plot (which can be seen in the code chunk labelled statcast-obp,in the results section). Neither regression shows a clear pattern in the residual plots, but here is some worry about constant variance in the On-base percentage regression around the fitted value of 0.2. In general, however, we judged that the assumptions of linearity and constant variance seem to be valid for both plots. The QQ-plots are meant to test normality. The on-base percentage QQ-Plot deviates from normality, but this deviation is largely in the tails, thus we think this assumption is satisfied. The QQ-plot doesn't' deviate much for the slugging percentage regression and thus we think normality is fine for the slugging percentage regression. Independence is also satisfied because we are looking at the player level. If we were looking at typical statistics their might be some violation of independence based on the team the player played for but advanced statistics are designed such that they are independent. This is why exit-velocity is used rather than say, hit distance. Exit velocity cannot be altered by environmental conditions (and thus what team a player plays for), but distance a ball travels is altered by the elevation of a stadium. The use of data from a single season also helps us ensure data are independent with respect to conditions about the state of the sport. In the time since 2019 multiple rules have been altered and some of basic skills and strategies have changed, but we do not have to worry about these potential violations of independence because all of our data comes from a single seasson. These linear regressions satisfy our assumptions and can thus be used for analysis.
 
 ## Results:
 
@@ -104,7 +121,7 @@ m_best$beta
 cat("Best Lambda:", best_lambda)
 ```
 
-After using these variables in the linear regression (included below), we were able to conclude that the assumptions for a linear regression were satisfied because in the residual plot we see mostly symmetrically distributed and evenly spaced observations, satisfying the criteria for linearity and constant variance. Furthermore, there is a slight correlation between the predictors and no clear deviation patterns, aside from the ends, in the Q-Q plot, satisfying the assumption for independence and normality. Moreover, 69.94% of the variation in OBP was explained by the predictors in the model (adjusted R-squared).
+After using these variables in the linear regression (included below), we were able to conclude that the assumptions for a linear regression were satisfied, as discussed in the methodolgy. Moreover, 69.94% of the variation in OBP was explained by the predictors in the model (adjusted R-squared).
 
 ```{r statcast-obp, warning = FALSE, message=FALSE, echo=FALSE}
 # Rol obp linear model
@@ -124,14 +141,15 @@ m3_1 <- ggplot(m3_aug, aes(x = .fitted, y = .resid)) +
   geom_point() + 
   geom_hline(yintercept = 0, color = "darkred") + 
   labs(x = "Fitted Values", 
-       y = "Residual") + 
+       y = "Residual", title = "Residual Plot") + 
   theme_bw()
 
 m3_2 <- ggplot(m3_aug, aes(sample = .resid)) +
   stat_qq() + 
   stat_qq_line() + 
   theme_bw() +
-  labs(x = "Theoretical quantiles", y = "Sample quantiles")
+  labs(x = "Theoretical quantiles", y = "Sample quantiles", 
+       title = "QQ-Plot")
 
 grid.arrange(m3_1, m3_2, ncol = 2)
 ```
@@ -183,7 +201,7 @@ In this study, we aimed to develop predictive models for on base percentage and 
 
 Our findings suggest that advanced statistics can be used to predict player performance and improve team strategies. For example, our models highlighted the importance of flareburner_percent and oz_swing_percent in predicting on base percentage. These findings suggest that players who can hit a variety of pitches are more likely to perform better, while those who swing at bad pitches are less likely to reach base. These insights can be useful for teams when selecting players or developing strategies to optimize their lineups. Moreover, our models revealed that sweet_spot_percent and barrel were the most notable predictors of slugging percentage. These findings suggest that players who can consistently hit the ball at certain angles and on a specific part of their bat are more likely to generate more extra base hits. Therefore, teams can use this information to identify players who are more likely to produce high slugging percentages, which is a key factor in offensive success in baseball.
 
-Despite the promising results of our study, there are some limitations to our analysis. First, our data only covers the 2019 season, and it is possible that our models may not be generalizable to other seasons or contexts. Furthermore, this is a generalized model that does not take into account unique player and stadium advantages. For example, certain players hit far better against right handed pitchers than left handed pitchers, and a team's optimal lineup should change based on the type of pitcher they are facing. Also, stadiums at higher altitudes, like the one in Colorado, favor more powerful hitters because its altitude is higher, which makes the baseball go approximately 10% further (Welling). This would also warrant a game specific change in the lineup.
+Despite the promising results of our study, there are some limitations to our analysis. First, our data only covers the 2019 season, and it is possible that our models may not be generalizable to other seasons or contexts. We'd have to add additional variables to our model to help ensure independence among statstics from different seasons, but this is perhaps a direction for future work. Furthermore, this is a generalized model that does not take into account unique player and stadium advantages. For example, certain players hit far better against right handed pitchers than left handed pitchers, and a team's optimal lineup should change based on the type of pitcher they are facing. Also, stadiums at higher altitudes, like the one in Colorado, favor more powerful hitters because its altitude is higher, which makes the baseball go approximately 10% further (Welling). This would also warrant a game specific change in the lineup.
 
 However, the biggest limitation of our model is that it only predicts on base and slugging percentage for players who are already in the major leagues. While this is helpful for decisions for future seasons, the model is not able to shine any light on how a player may perform before they actually play in the major leagues. Fortunately, major league baseball franchises have a well developed farm system where players spend years in the minor leagues. This is the highest level of baseball, aside from the major league, in the United States, and they track all of the same stats that the MLB does. Therefore, a natural progression for future work would be to try and predict a player's on base and slugging percentage based on their advanced statistics in the minor leagues. This would give teams a better gauge on how players would perform in the major leagues, rather than how players would perform in future seasons after they have already made it to the majors. With this type of model, teams would have a better idea of how to strategically bring up players and put the team that gives them the best chance of winning on the field.
 \newpage
